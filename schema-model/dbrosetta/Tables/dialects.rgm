@@ -1,0 +1,99 @@
+table "dbrosetta"."dialects" {
+  primaryKey = {
+    columns = [
+      "id"
+    ]
+    name = "dialects_pkey"
+    objectType = primaryKey
+  }
+  owner = postgres
+  columns = (
+    column "id" {
+      type = integer
+      null = NOT NULL
+      generatedAsIdentity = ALWAYS
+    }
+    column "name" {
+      type = character varying(50)
+      null = NOT NULL
+    }
+    column "display_name" {
+      type = character varying(100)
+      null = NOT NULL
+    }
+    column "version" {
+      type = character varying(20)
+    }
+    column "description" {
+      type = text
+    }
+    column "is_active" {
+      type = boolean
+      null = NOT NULL
+      default = true
+    }
+    column "metadata" {
+      type = jsonb
+    }
+    column "created_at" {
+      type = timestamp with time zone
+      null = NOT NULL
+      default = CURRENT_TIMESTAMP
+    }
+    column "updated_at" {
+      type = timestamp with time zone
+      null = NOT NULL
+      default = CURRENT_TIMESTAMP
+    }
+  )
+}
+
+index "dbrosetta"."dialects_name_key" {
+  table = "dbrosetta"."dialects"
+  type = btree
+  columns = <
+    {
+      definition = name
+    }
+
+  >
+  isUnique = True
+  isConstraint = true
+}
+
+index "dbrosetta"."idx_dialects_active" {
+  table = "dbrosetta"."dialects"
+  type = btree
+  columns = <
+    {
+      definition = is_active
+    }
+
+  >
+  isUnique = False
+}
+
+index "dbrosetta"."idx_dialects_metadata" {
+  table = "dbrosetta"."dialects"
+  type = gin
+  columns = <
+    {
+      definition = metadata
+    }
+
+  >
+  isUnique = False
+}
+
+index "dbrosetta"."idx_dialects_name" {
+  table = "dbrosetta"."dialects"
+  type = btree
+  columns = <
+    {
+      definition = name
+    }
+
+  >
+  isUnique = False
+}
+

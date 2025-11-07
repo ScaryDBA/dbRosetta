@@ -1,0 +1,130 @@
+table "dbrosetta"."terms" {
+  primaryKey = {
+    columns = [
+      "id"
+    ]
+    name = "terms_pkey"
+    objectType = primaryKey
+  }
+  owner = postgres
+  columns = (
+    column "id" {
+      type = integer
+      null = NOT NULL
+      generatedAsIdentity = ALWAYS
+    }
+    column "canonical_term" {
+      type = character varying(200)
+      null = NOT NULL
+    }
+    column "category" {
+      type = character varying(50)
+      null = NOT NULL
+    }
+    column "subcategory" {
+      type = character varying(50)
+    }
+    column "description" {
+      type = text
+      null = NOT NULL
+    }
+    column "usage_context" {
+      type = text
+    }
+    column "is_active" {
+      type = boolean
+      null = NOT NULL
+      default = true
+    }
+    column "metadata" {
+      type = jsonb
+    }
+    column "created_at" {
+      type = timestamp with time zone
+      null = NOT NULL
+      default = CURRENT_TIMESTAMP
+    }
+    column "updated_at" {
+      type = timestamp with time zone
+      null = NOT NULL
+      default = CURRENT_TIMESTAMP
+    }
+  )
+}
+
+index "dbrosetta"."idx_terms_active" {
+  table = "dbrosetta"."terms"
+  type = btree
+  columns = <
+    {
+      definition = is_active
+    }
+
+  >
+  isUnique = False
+}
+
+index "dbrosetta"."idx_terms_canonical" {
+  table = "dbrosetta"."terms"
+  type = btree
+  columns = <
+    {
+      definition = canonical_term
+    }
+
+  >
+  isUnique = False
+}
+
+index "dbrosetta"."idx_terms_category" {
+  table = "dbrosetta"."terms"
+  type = btree
+  columns = <
+    {
+      definition = category
+    }
+
+  >
+  isUnique = False
+}
+
+index "dbrosetta"."idx_terms_category_sub" {
+  table = "dbrosetta"."terms"
+  type = btree
+  columns = <
+    {
+      definition = category
+    }
+
+    {
+      definition = subcategory
+    }
+
+  >
+  isUnique = False
+}
+
+index "dbrosetta"."idx_terms_metadata" {
+  table = "dbrosetta"."terms"
+  type = gin
+  columns = <
+    {
+      definition = metadata
+    }
+
+  >
+  isUnique = False
+}
+
+index "dbrosetta"."uq_terms_canonical_lower" {
+  table = "dbrosetta"."terms"
+  type = btree
+  columns = <
+    {
+      definition = lower(canonical_term::text)
+    }
+
+  >
+  isUnique = True
+}
+
