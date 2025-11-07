@@ -1,0 +1,6 @@
+[environments.development]
+url = "jdbc:postgresql://dbrosetta.postgres.database.azure.com:5432/dbrosetta_dev"
+user = "postgres"
+password = "${localSecret.Flyway Desktop 1d33208b-3dec-431f-81fe-312e44b158cb}"
+schemas = [ "dbrosetta" ]
+displayName = "Development database"
