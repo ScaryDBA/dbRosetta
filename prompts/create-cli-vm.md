@@ -5,53 +5,34 @@ SYSTEM: You are an Azure provisioning and DevOps script author. Produce determin
 USER: Generate these four artifacts exactly and nothing else:
 
 provision-vm.sh — an idempotent Bash script that:
-
-creates the resource group if missing,
-
-creates a Standard public IP (Static, Standard SKU) named {{public_ip_name}},
-
-creates a virtual network and subnet if not present (simple default names allowed),
-
-provisions an Ubuntu VM with the provided admin_user and SSH key, attaching the static public IP,
-
-sets the VM to use cloud-init file at path {{cloud_init_path}},
-
+creates the resource group if missing, 
+creates a Standard public IP (Static, Standard SKU) named {{public_ip_name}}, 
+creates a virtual network and subnet if not present (simple default names allowed), 
+provisions an Ubuntu VM with the provided admin_user and SSH key, 
+attaching the static public IP, 
+sets the VM to use cloud-init file at path {{cloud_init_path}}, 
 outputs the assigned public IP on success in plain text.
 
 Use az CLI flags and checks to avoid failing if resources already exist (use --no-wait only where safe).
 
 cloud-init.yml — a cloud-init file that:
-
-installs docker (latest stable from official repo), docker-compose (if available), jq, and openssh-server,
-
+installs docker (latest stable from official repo), docker-compose (if available), jq, 
+and openssh-server, 
 creates a non-root user matching {{admin_user}} with sudo access and adds a directory /home/{{admin_user}}/runner,
-
 sets up a small helper directory /opt/runner-scripts and drops register-runner.sh there (the script content will be provided separately),
-
 ensures docker service is enabled and started,
-
 writes a marker file /var/lib/dbrosetta-provisioned when finished.
 
 register-runner.sh — a script to be run on the VM by the operator that:
-
 accepts two positional args: GH_RUNNER_TOKEN and REPO_URL,
-
 downloads the GitHub Actions runner tarball for the latest stable release (use a fixed release URL pattern but allow easy version editing),
-
 configures the runner with provided token and labels (use {{runner_labels}}), installs it as a systemd service, and starts it,
-
 secures the runner directory with correct ownership,
-
 outputs the runner registration status and service status in plain text,
-
 includes safe cleanup instructions to unregister the runner if needed.
-
 add-firewall-rule.sh — an optional helper that:
-
 accepts three args: AZURE_RESOURCE_GROUP, POSTGRES_SERVER_NAME, RULE_NAME,
-
 fetches the public IP of the VM by resource name (uses az network public-ip show) and prints the az postgres server firewall-rule create command the operator can run locally (do not run it automatically),
-
 includes a one-line example the operator can paste to actually create the rule (commented).
 
 Additional requirements for all artifacts:
