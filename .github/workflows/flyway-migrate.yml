@@ -2,7 +2,7 @@ name: Flyway Migration on Self-Hosted Runner
 
 on:
   push:
-    branches: [main, develop, Part4]
+    branches: [main, develop]
     paths:
       - 'migrations/**'
       - '.github/workflows/flyway-migrate.yml'
