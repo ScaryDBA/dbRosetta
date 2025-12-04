@@ -1,0 +1,126 @@
+name: Flyway Migration on Self-Hosted Runner
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'migrations/**'
+      - '.github/workflows/flyway-migrate.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'migrations/**'
+  workflow_dispatch:
+
+jobs:
+  flyway-validate:
+    name: Validate Migrations
+    runs-on: [self-hosted, linux, x64]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Login to Azure with Managed Identity
+        run: |
+          echo "Logging in with VM managed identity..."
+          az login --identity
+          az account show
+      
+      - name: Load Database Environment Variables
+        run: |
+          # Use the existing load-db-env.sh script on the VM
+          source ~/load-db-env.sh
+          
+          # Export for subsequent steps
+          echo "FLYWAY_URL=$FLYWAY_URL" >> $GITHUB_ENV
+          echo "FLYWAY_USER=$FLYWAY_USER" >> $GITHUB_ENV
+          echo "FLYWAY_PASSWORD=$FLYWAY_PASSWORD" >> $GITHUB_ENV
+          
+          # Mask sensitive values in logs
+          echo "::add-mask::$FLYWAY_PASSWORD"
+          
+          echo "✓ Database environment variables loaded"
+      
+      - name: Flyway Info
+        run: |
+          echo "Running Flyway info..."
+          flyway info \
+            -locations="filesystem:$GITHUB_WORKSPACE/migrations" \
+            -schemas="dbrosetta"
+      
+      - name: Flyway Validate
+        run: |
+          echo "Validating migrations..."
+          flyway validate \
+            -locations="filesystem:$GITHUB_WORKSPACE/migrations" \
+            -schemas="dbrosetta"
+  
+  flyway-migrate:
+    name: Apply Migrations
+    runs-on: [self-hosted, linux, x64]
+    needs: flyway-validate
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Login to Azure with Managed Identity
+        run: |
+          az login --identity
+      
+      - name: Load Database Environment Variables
+        run: |
+          # Use the existing load-db-env.sh script on the VM
+          source ~/load-db-env.sh
+          
+          # Export for subsequent steps
+          echo "FLYWAY_URL=$FLYWAY_URL" >> $GITHUB_ENV
+          echo "FLYWAY_USER=$FLYWAY_USER" >> $GITHUB_ENV
+          echo "FLYWAY_PASSWORD=$FLYWAY_PASSWORD" >> $GITHUB_ENV
+          
+          # Mask sensitive values in logs
+          echo "::add-mask::$FLYWAY_PASSWORD"
+          
+          echo "✓ Database environment variables loaded"
+      
+      - name: Flyway Migrate
+        run: |
+          echo "Applying migrations..."
+          flyway migrate \
+            -locations="filesystem:$GITHUB_WORKSPACE/migrations" \
+            -schemas="dbrosetta" \
+            -validateMigrationNaming=true
+      
+      - name: Flyway Info (Post-Migration)
+        if: always()
+        run: |
+          flyway info \
+            -locations="filesystem:$GITHUB_WORKSPACE/migrations" \
+            -schemas="dbrosetta"
+      
+      - name: Generate Migration Report
+        if: always()
+        run: |
+          echo "# Flyway Migration Report" > migration-report.md
+          echo "" >> migration-report.md
+          echo "**Workflow Run:** ${{ github.run_number }}" >> migration-report.md
+          echo "**Commit:** ${{ github.sha }}" >> migration-report.md
+          echo "**Triggered by:** ${{ github.actor }}" >> migration-report.md
+          echo "**Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> migration-report.md
+          echo "" >> migration-report.md
+          echo "## Migration Status" >> migration-report.md
+          echo '```' >> migration-report.md
+          flyway info \
+            -locations="filesystem:$GITHUB_WORKSPACE/migrations" \
+            -schemas="dbrosetta" >> migration-report.md
+          echo '```' >> migration-report.md
+      
+      - name: Upload Migration Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: migration-report-${{ github.run_number }}
+          path: migration-report.md
+          retention-days: 30
