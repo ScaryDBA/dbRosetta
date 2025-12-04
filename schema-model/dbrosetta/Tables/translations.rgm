@@ -1,0 +1,176 @@
+table "dbrosetta"."translations" {
+  primaryKey = {
+    columns = [
+      "id"
+    ]
+    name = "translations_pkey"
+    objectType = primaryKey
+  }
+  owner = postgres
+  columns = (
+    column "id" {
+      type = bigint
+      null = NOT NULL
+      generatedAsIdentity = ALWAYS
+    }
+    column "term_id" {
+      type = integer
+      null = NOT NULL
+    }
+    column "dialect_id" {
+      type = integer
+      null = NOT NULL
+    }
+    column "translated_term" {
+      type = text
+      null = NOT NULL
+    }
+    column "syntax_pattern" {
+      type = text
+    }
+    column "examples" {
+      type = text
+    }
+    column "notes" {
+      type = text
+    }
+    column "confidence_level" {
+      type = integer
+      default = 100
+    }
+    column "is_active" {
+      type = boolean
+      null = NOT NULL
+      default = true
+    }
+    column "metadata" {
+      type = jsonb
+    }
+    column "created_at" {
+      type = timestamp with time zone
+      null = NOT NULL
+      default = CURRENT_TIMESTAMP
+    }
+    column "updated_at" {
+      type = timestamp with time zone
+      null = NOT NULL
+      default = CURRENT_TIMESTAMP
+    }
+  )
+}
+
+foreignKey "dbrosetta"."translations"."fk_translations_dialect" {
+  columns = [
+    "dialect_id"
+  ]
+  referencedTable = "dbrosetta"."dialects"
+  referencedColumns = [
+    "id"
+  ]
+  onDelete = CASCADE
+}
+
+foreignKey "dbrosetta"."translations"."fk_translations_term" {
+  columns = [
+    "term_id"
+  ]
+  referencedTable = "dbrosetta"."terms"
+  referencedColumns = [
+    "id"
+  ]
+  onDelete = CASCADE
+}
+
+index "dbrosetta"."idx_translations_active" {
+  table = "dbrosetta"."translations"
+  type = btree
+  columns = <
+    {
+      definition = is_active
+    }
+
+  >
+  isUnique = False
+}
+
+index "dbrosetta"."idx_translations_confidence" {
+  table = "dbrosetta"."translations"
+  type = btree
+  columns = <
+    {
+      definition = confidence_level
+    }
+
+  >
+  isUnique = False
+}
+
+index "dbrosetta"."idx_translations_dialect" {
+  table = "dbrosetta"."translations"
+  type = btree
+  columns = <
+    {
+      definition = dialect_id
+    }
+
+  >
+  isUnique = False
+}
+
+index "dbrosetta"."idx_translations_metadata" {
+  table = "dbrosetta"."translations"
+  type = gin
+  columns = <
+    {
+      definition = metadata
+    }
+
+  >
+  isUnique = False
+}
+
+index "dbrosetta"."idx_translations_term" {
+  table = "dbrosetta"."translations"
+  type = btree
+  columns = <
+    {
+      definition = term_id
+    }
+
+  >
+  isUnique = False
+}
+
+index "dbrosetta"."idx_translations_term_dialect" {
+  table = "dbrosetta"."translations"
+  type = btree
+  columns = <
+    {
+      definition = term_id
+    }
+
+    {
+      definition = dialect_id
+    }
+
+  >
+  isUnique = False
+}
+
+index "dbrosetta"."uq_translations_term_dialect" {
+  table = "dbrosetta"."translations"
+  type = btree
+  columns = <
+    {
+      definition = term_id
+    }
+
+    {
+      definition = dialect_id
+    }
+
+  >
+  isUnique = True
+  isConstraint = true
+}
+

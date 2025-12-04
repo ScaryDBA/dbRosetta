@@ -1,0 +1,165 @@
+table "dbrosetta"."artifacts" {
+  primaryKey = {
+    columns = [
+      "id"
+    ]
+    name = "artifacts_pkey"
+    objectType = primaryKey
+  }
+  owner = postgres
+  columns = (
+    column "id" {
+      type = bigint
+      null = NOT NULL
+      generatedAsIdentity = ALWAYS
+    }
+    column "name" {
+      type = character varying(200)
+      null = NOT NULL
+    }
+    column "artifact_type" {
+      type = character varying(50)
+      null = NOT NULL
+    }
+    column "source_dialect_id" {
+      type = integer
+    }
+    column "target_dialect_id" {
+      type = integer
+    }
+    column "original_sql" {
+      type = text
+    }
+    column "translated_sql" {
+      type = text
+    }
+    column "translation_summary" {
+      type = text
+    }
+    column "status" {
+      type = character varying(20)
+      null = NOT NULL
+      default = 'draft'::character varying
+    }
+    column "metadata" {
+      type = jsonb
+    }
+    column "created_at" {
+      type = timestamp with time zone
+      null = NOT NULL
+      default = CURRENT_TIMESTAMP
+    }
+    column "updated_at" {
+      type = timestamp with time zone
+      null = NOT NULL
+      default = CURRENT_TIMESTAMP
+    }
+  )
+}
+
+foreignKey "dbrosetta"."artifacts"."artifacts_source_dialect_id_fkey" {
+  columns = [
+    "source_dialect_id"
+  ]
+  referencedTable = "dbrosetta"."dialects"
+  referencedColumns = [
+    "id"
+  ]
+  onDelete = SET NULL
+}
+
+foreignKey "dbrosetta"."artifacts"."artifacts_target_dialect_id_fkey" {
+  columns = [
+    "target_dialect_id"
+  ]
+  referencedTable = "dbrosetta"."dialects"
+  referencedColumns = [
+    "id"
+  ]
+  onDelete = SET NULL
+}
+
+index "dbrosetta"."idx_artifacts_created" {
+  table = "dbrosetta"."artifacts"
+  type = btree
+  columns = <
+    {
+      definition = created_at
+    }
+
+  >
+  isUnique = False
+}
+
+index "dbrosetta"."idx_artifacts_metadata" {
+  table = "dbrosetta"."artifacts"
+  type = gin
+  columns = <
+    {
+      definition = metadata
+    }
+
+  >
+  isUnique = False
+}
+
+index "dbrosetta"."idx_artifacts_name" {
+  table = "dbrosetta"."artifacts"
+  type = btree
+  columns = <
+    {
+      definition = name
+    }
+
+  >
+  isUnique = False
+}
+
+index "dbrosetta"."idx_artifacts_source_dialect" {
+  table = "dbrosetta"."artifacts"
+  type = btree
+  columns = <
+    {
+      definition = source_dialect_id
+    }
+
+  >
+  isUnique = False
+}
+
+index "dbrosetta"."idx_artifacts_status" {
+  table = "dbrosetta"."artifacts"
+  type = btree
+  columns = <
+    {
+      definition = status
+    }
+
+  >
+  isUnique = False
+}
+
+index "dbrosetta"."idx_artifacts_target_dialect" {
+  table = "dbrosetta"."artifacts"
+  type = btree
+  columns = <
+    {
+      definition = target_dialect_id
+    }
+
+  >
+  isUnique = False
+}
+
+index "dbrosetta"."idx_artifacts_type" {
+  table = "dbrosetta"."artifacts"
+  type = btree
+  columns = <
+    {
+      definition = artifact_type
+    }
+
+  >
+  isUnique = False
+}
+

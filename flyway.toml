@@ -1,0 +1,57 @@
+databaseType = "PostgreSql"
+id = "ec047de1-f9e8-46ee-9206-124f9e5d4ea7"
+name = "dbRosetta"
+
+[flyway]
+callbackLocations = [ "filesystem:callbacks" ]
+locations = [ "filesystem:migrations" ]
+mixed = true
+outOfOrder = true
+schemaModelLocation = "schema-model"
+validateMigrationNaming = true
+table = "flyway_schema_history"
+baselineOnMigrate = false
+baselineVersion = "1"
+baselineDescription = "Initial baseline from existing schema"
+cleanDisabled = true
+encoding = "UTF-8"
+
+  [flyway.check]
+  majorTolerance = 0
+
+[flywayDesktop]
+developmentEnvironment = "development"
+shadowEnvironment = "shadow"
+
+[environments.default]
+url = "jdbc:postgresql://dbrosetta.postgres.database.azure.com:5432/dbrosetta?sslmode=require"
+user = "postgres"
+password = "${FLYWAY_PASSWORD}"
+schemas = ["dbrosetta"]
+
+[redgateCompare]
+filterFile = "filter.rgf"
+
+[redgateCompare.postgresql.options.behavior]
+detectRenames = "identical-only"
+
+[redgateCompare.postgresql.options.ignores]
+ignoreNewlinesInTextObjects = "off"
+
+[environments.development]
+url = "jdbc:postgresql://dbrosetta.postgres.database.azure.com:5432/dbrosetta?sslmode=require"
+user = "postgres"
+password = "${FLYWAY_PASSWORD}"
+schemas = ["dbrosetta"]
+
+[environments.shadow]
+url = "jdbc:postgresql://dbrosetta.postgres.database.azure.com:5432/dbrosetta_shadow?sslmode=require"
+user = "postgres"
+password = "${FLYWAY_PASSWORD}"
+schemas = ["dbrosetta"]
+
+[environments.ci]
+url = "${CI_DATABASE_URL}"
+user = "${CI_DATABASE_USER}"
+password = "${CI_DATABASE_PASSWORD}"
+schemas = ["dbrosetta"]
