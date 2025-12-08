@@ -109,6 +109,14 @@ describe('Translations API', () => {
 
   describe('GET /api/v1/translations', () => {
     beforeEach(async () => {
+      // Create a second dialect for testing multiple translations
+      const dialect2 = await prismaTest.dialect.create({
+        data: {
+          name: 'test_mysql_trans',
+          displayName: 'Test MySQL',
+        },
+      });
+
       await prismaTest.translation.createMany({
         data: [
           {
@@ -120,7 +128,7 @@ describe('Translations API', () => {
           },
           {
             termId: testTermId,
-            dialectId: testDialectId,
+            dialectId: dialect2.id,
             translatedTerm: 'SELECT *',
             confidenceLevel: 90,
             isActive: true,
@@ -192,7 +200,7 @@ describe('Translations API', () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body);
-      expect(body.id).toBe(translation.id);
+      expect(body.id).toBe(translation.id.toString());
       expect(body.term).toBeDefined();
       expect(body.dialect).toBeDefined();
     });
