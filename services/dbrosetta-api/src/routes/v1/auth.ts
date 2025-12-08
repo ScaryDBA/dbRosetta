@@ -9,6 +9,11 @@ import {
   changePasswordSchema,
 } from '../../schemas/auth';
 import { authenticateRequest } from '../../middleware/auth';
+import {
+  verifyWordPressToken,
+  extractEmailFromWordPressPayload,
+} from '../../utils/wordpress-jwt';
+import { logger } from '../../utils/logger';
 
 export default async function authRoutes(
   app: FastifyInstance,
@@ -184,6 +189,126 @@ export default async function authRoutes(
         token,
         refreshToken,
       });
+    },
+  });
+
+  /**
+   * Login with WordPress JWT token
+   */
+  app.post('/wordpress-login', {
+    schema: {
+      description: 'Authenticate using a WordPress JWT token and receive dbRosetta API tokens',
+      tags: ['Authentication'],
+      body: {
+        type: 'object',
+        required: ['wordpressToken'],
+        properties: {
+          wordpressToken: {
+            type: 'string',
+            description: 'JWT token issued by WordPress (using a WordPress JWT plugin)',
+          },
+          autoRegister: {
+            type: 'boolean',
+            description: 'Automatically create a user account if the email does not exist (default: true)',
+            default: true,
+          },
+        },
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            user: {
+              type: 'object',
+              properties: {
+                id: { type: 'number' },
+                email: { type: 'string' },
+                name: { type: 'string' },
+                role: { type: 'string' },
+                isNew: { type: 'boolean' },
+              },
+            },
+            token: { type: 'string' },
+            refreshToken: { type: 'string' },
+          },
+        },
+      },
+    },
+    handler: async (request, reply) => {
+      try {
+        const body = request.body as {
+          wordpressToken: string;
+          autoRegister?: boolean;
+        };
+
+        // Verify the WordPress JWT token
+        const wpPayload = verifyWordPressToken(body.wordpressToken);
+        const email = extractEmailFromWordPressPayload(wpPayload);
+
+        logger.info({ email }, 'WordPress JWT validated successfully');
+
+        // Check if user exists in our database
+        let user = await prisma.user.findUnique({
+          where: { email },
+        });
+
+        let isNew = false;
+
+        // Auto-register user if they don't exist and autoRegister is enabled (default true)
+        if (!user && (body.autoRegister ?? true)) {
+          logger.info({ email }, 'Creating new user from WordPress JWT');
+          
+          user = await prisma.user.create({
+            data: {
+              email,
+              name: email.split('@')[0], // Use email prefix as default name
+              password: '', // WordPress users don't have passwords in our system
+              role: 'user', // Default role for WordPress users
+            },
+          });
+          
+          isNew = true;
+        }
+
+        if (!user) {
+          return reply.status(404).send({
+            error: 'Not Found',
+            message: 'User not found. Set autoRegister=true to create a new user.',
+          });
+        }
+
+        // Generate our API tokens
+        const token = generateToken({
+          userId: user.id,
+          email: user.email,
+          role: user.role as 'admin' | 'user',
+        });
+
+        const refreshToken = generateRefreshToken({
+          userId: user.id,
+          email: user.email,
+          role: user.role as 'admin' | 'user',
+        });
+
+        return reply.send({
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            isNew,
+          },
+          token,
+          refreshToken,
+        });
+      } catch (error) {
+        logger.error({ error: error instanceof Error ? error.message : 'Unknown error' }, 'WordPress JWT authentication failed');
+        
+        return reply.status(401).send({
+          error: 'Unauthorized',
+          message: error instanceof Error ? error.message : 'WordPress token validation failed',
+        });
+      }
     },
   });
 
