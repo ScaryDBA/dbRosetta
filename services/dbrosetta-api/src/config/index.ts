@@ -19,9 +19,14 @@ const envSchema = z.object({
   AZURE_CLIENT_SECRET: z.string().optional(),
 
   // JWT / Auth
+  JWT_SECRET: z.string().min(32, 'JWT secret must be at least 32 characters'),
+  JWT_EXPIRES_IN: z.string().default('1h'),
   JWT_ISSUER: z.string().url(),
   JWT_AUDIENCE: z.string(),
   JWKS_URI: z.string().url(),
+  
+  // WordPress Integration
+  WORDPRESS_JWT_SECRET: z.string().optional(),
 
   // CORS
   CORS_ORIGIN: z.string().transform((val) => val.split(',')),

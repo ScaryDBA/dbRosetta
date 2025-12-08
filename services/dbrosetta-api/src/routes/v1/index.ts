@@ -1,4 +1,5 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
+import authRoutes from './auth';
 import dialectsRoutes from './dialects';
 import termsRoutes from './terms';
 import translationsRoutes from './translations';
@@ -12,6 +13,7 @@ export default async function v1Routes(
   _options: FastifyPluginOptions
 ): Promise<void> {
   // Register all v1 routes
+  await app.register(authRoutes, { prefix: '/auth' });
   await app.register(dialectsRoutes, { prefix: '/dialects' });
   await app.register(termsRoutes, { prefix: '/terms' });
   await app.register(translationsRoutes, { prefix: '/translations' });

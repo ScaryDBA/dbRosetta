@@ -1,75 +1,21 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import jwksClient from 'jwks-rsa';
-import { verify, JwtPayload } from 'jsonwebtoken';
-import { getConfig } from '../config';
+import { verifyToken } from '../utils/jwt';
 import { logger } from '../utils/logger';
-import { JWTPayload, AuthenticatedUser, UserRole } from '../types/auth';
 
-const config = getConfig();
-
-// JWKS client for Azure AD public keys
-const client = jwksClient({
-  jwksUri: config.JWKS_URI,
-  cache: true,
-  cacheMaxAge: 3600000, // 1 hour
-  rateLimit: true,
-  jwksRequestsPerMinute: 10,
-});
-
-function getKey(header: any, callback: any): void {
-  client.getSigningKey(header.kid, (err, key) => {
-    if (err) {
-      callback(err, null);
-      return;
-    }
-    const signingKey = key?.getPublicKey();
-    callback(null, signingKey);
-  });
-}
-
-export async function verifyToken(token: string): Promise<JWTPayload> {
-  return new Promise((resolve, reject) => {
-    verify(
-      token,
-      getKey,
-      {
-        issuer: config.JWT_ISSUER,
-        audience: config.JWT_AUDIENCE,
-        algorithms: ['RS256'],
-      },
-      (err, decoded) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve(decoded as JWTPayload);
-      }
-    );
-  });
-}
-
-export function extractRoles(payload: JWTPayload): UserRole[] {
-  const roles: UserRole[] = [];
-  
-  // Extract roles from various possible claim locations
-  const roleClaims = payload.roles || payload.role || payload.groups || [];
-  const roleArray = Array.isArray(roleClaims) ? roleClaims : [roleClaims];
-
-  roleArray.forEach((role: string) => {
-    const normalizedRole = role.toLowerCase();
-    if (Object.values(UserRole).includes(normalizedRole as UserRole)) {
-      roles.push(normalizedRole as UserRole);
-    }
-  });
-
-  // Default to reader if no valid roles found
-  if (roles.length === 0) {
-    roles.push(UserRole.READER);
+// Extend FastifyRequest to include user
+declare module 'fastify' {
+  interface FastifyRequest {
+    user: {
+      userId: number;
+      email: string;
+      role: 'admin' | 'user';
+    };
   }
-
-  return roles;
 }
 
+/**
+ * Authenticate request using JWT Bearer token
+ */
 export async function authenticateRequest(
   request: FastifyRequest,
   reply: FastifyReply
@@ -80,56 +26,79 @@ export async function authenticateRequest(
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return reply.status(401).send({
         error: 'Unauthorized',
-        message: 'Missing or invalid Authorization header',
+        message: 'Missing or invalid Authorization header. Expected: Bearer <token>',
       });
     }
 
-    const token = authHeader.substring(7);
-    const payload = await verifyToken(token);
-
-    // Extract user information
-    const user: AuthenticatedUser = {
-      id: payload.sub,
-      email: payload.email,
-      name: payload.name,
-      roles: extractRoles(payload),
-    };
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    const payload = verifyToken(token);
 
     // Attach user to request
-    (request as any).user = user;
+    request.user = {
+      userId: payload.userId,
+      email: payload.email,
+      role: payload.role,
+    };
 
-    logger.debug({ userId: user.id, roles: user.roles }, 'User authenticated');
+    logger.debug({ userId: payload.userId, role: payload.role }, 'User authenticated');
   } catch (error) {
-    logger.warn({ error }, 'Authentication failed');
+    logger.warn({ error: error instanceof Error ? error.message : 'Unknown error' }, 'Authentication failed');
     return reply.status(401).send({
       error: 'Unauthorized',
-      message: 'Invalid or expired token',
+      message: error instanceof Error ? error.message : 'Invalid or expired token',
     });
   }
 }
 
-export function requireRole(...requiredRoles: UserRole[]) {
-  return async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-    const user = (request as any).user as AuthenticatedUser;
+/**
+ * Require admin role
+ */
+export async function requireAdmin(
+  request: FastifyRequest,
+  reply: FastifyReply
+): Promise<void> {
+  // authenticateRequest must be called first
+  if (!request.user) {
+    return reply.status(401).send({
+      error: 'Unauthorized',
+      message: 'Authentication required',
+    });
+  }
 
-    if (!user) {
-      return reply.status(401).send({
-        error: 'Unauthorized',
-        message: 'Authentication required',
-      });
+  if (request.user.role !== 'admin') {
+    logger.warn(
+      { userId: request.user.userId, role: request.user.role },
+      'Admin access denied'
+    );
+    return reply.status(403).send({
+      error: 'Forbidden',
+      message: 'Admin privileges required',
+    });
+  }
+}
+
+/**
+ * Optional authentication - attaches user if token is present but doesn't require it
+ */
+export async function optionalAuth(
+  request: FastifyRequest,
+  _reply: FastifyReply
+): Promise<void> {
+  try {
+    const authHeader = request.headers.authorization;
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      const payload = verifyToken(token);
+
+      request.user = {
+        userId: payload.userId,
+        email: payload.email,
+        role: payload.role,
+      };
     }
-
-    const hasRequiredRole = requiredRoles.some((role) => user.roles.includes(role));
-
-    if (!hasRequiredRole) {
-      logger.warn(
-        { userId: user.id, userRoles: user.roles, requiredRoles },
-        'Insufficient permissions'
-      );
-      return reply.status(403).send({
-        error: 'Forbidden',
-        message: 'Insufficient permissions',
-      });
-    }
-  };
+  } catch (error) {
+    // Silently fail for optional auth
+    logger.debug('Optional auth failed, continuing without user');
+  }
 }
