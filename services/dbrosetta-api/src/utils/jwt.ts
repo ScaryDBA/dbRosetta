@@ -1,7 +1,5 @@
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { getConfig } from '../config';
-
-const config = getConfig();
 
 export interface JWTPayload {
   userId: number;
@@ -15,8 +13,9 @@ export interface JWTPayload {
  * Generate a JWT token for a user
  */
 export function generateToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): string {
+  const config = getConfig();
   return jwt.sign(payload, config.JWT_SECRET, {
-    expiresIn: config.JWT_EXPIRES_IN,
+    expiresIn: config.JWT_EXPIRES_IN as string,
     issuer: 'dbrosetta-api',
   });
 }
@@ -25,6 +24,7 @@ export function generateToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): string 
  * Verify and decode a JWT token
  */
 export function verifyToken(token: string): JWTPayload {
+  const config = getConfig();
   try {
     const decoded = jwt.verify(token, config.JWT_SECRET, {
       issuer: 'dbrosetta-api',
@@ -45,6 +45,7 @@ export function verifyToken(token: string): JWTPayload {
  * Generate a refresh token with longer expiration
  */
 export function generateRefreshToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): string {
+  const config = getConfig();
   return jwt.sign(payload, config.JWT_SECRET, {
     expiresIn: '7d',
     issuer: 'dbrosetta-api',
