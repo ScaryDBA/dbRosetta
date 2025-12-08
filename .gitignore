@@ -1,0 +1,22 @@
+
+# Flyway ignores
+*.user.toml
+*.artifact
+report.html
+report.json
+flyway.conf
+
+# Environment files with secrets
+.env
+.env.local
+*.local.toml
+*-env-setup.md
+.azure-config
+.runner-config
+vm-creation-output.json
+
+# SSH keys
+*.pem
+*.key
+id_rsa*
+*.ppk
