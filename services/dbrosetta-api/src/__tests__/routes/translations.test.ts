@@ -8,7 +8,6 @@ describe('Translations API', () => {
   let testDialectId: number;
   let testTermId: number;
   let adminUser: TestUser;
-  let regularUser: TestUser;
 
   beforeAll(async () => {
     app = await buildApp();
@@ -16,7 +15,6 @@ describe('Translations API', () => {
     
     const users = await createTestUsers();
     adminUser = users.admin;
-    regularUser = users.user;
   });
 
   afterAll(async () => {

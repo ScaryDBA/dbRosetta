@@ -6,7 +6,6 @@ import { createTestUsers, cleanupTestUsers, TestUser } from '../helpers/users';
 describe('Terms API', () => {
   let app: FastifyInstance;
   let adminUser: TestUser;
-  let regularUser: TestUser;
 
   beforeAll(async () => {
     app = await buildApp();
@@ -14,7 +13,6 @@ describe('Terms API', () => {
     
     const users = await createTestUsers();
     adminUser = users.admin;
-    regularUser = users.user;
   });
 
   afterAll(async () => {
