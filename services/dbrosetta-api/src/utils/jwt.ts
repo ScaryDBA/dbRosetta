@@ -1,4 +1,4 @@
-import jwt, { SignOptions } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { getConfig } from '../config';
 
 export interface JWTPayload {
@@ -14,10 +14,14 @@ export interface JWTPayload {
  */
 export function generateToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): string {
   const config = getConfig();
-  return jwt.sign(payload, config.JWT_SECRET, {
-    expiresIn: config.JWT_EXPIRES_IN as string,
-    issuer: 'dbrosetta-api',
-  });
+  return jwt.sign(
+    payload,
+    config.JWT_SECRET,
+    {
+      expiresIn: config.JWT_EXPIRES_IN,
+      issuer: 'dbrosetta-api',
+    } as jwt.SignOptions
+  );
 }
 
 /**
