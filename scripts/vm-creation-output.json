@@ -1,0 +1,14 @@
+{
+  "fqdns": "",
+  "id": "/subscriptions/af1c0c61-4f7e-4f30-b4d9-1740a72f0bf6/resourceGroups/dbRosetta/providers/Microsoft.Compute/virtualMachines/vm-dbrosetta-runner",
+  "identity": {
+    "systemAssignedIdentity": "ed256b5a-2a78-428f-8859-b3054e643073",
+    "userAssignedIdentities": {}
+  },
+  "location": "northcentralus",
+  "macAddress": "7C-ED-8D-CA-13-41",
+  "powerState": "VM running",
+  "privateIpAddress": "10.0.2.4",
+  "publicIpAddress": "",
+  "resourceGroup": "dbRosetta"
+}

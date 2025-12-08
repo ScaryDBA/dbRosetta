@@ -1,0 +1,6 @@
+RESOURCE_GROUP=dbRosetta
+VM_NAME=vm-dbrosetta-runner
+VM_IDENTITY=ed256b5a-2a78-428f-8859-b3054e643073
+LOCATION=northcentralus
+ADMIN_USERNAME=azureuser
+SSH_KEY_PATH=/c/Users/grant/.ssh/dbrosetta-runner
