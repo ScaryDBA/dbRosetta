@@ -91,6 +91,9 @@ describe('Dialects API', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/dialects',
+        headers: {
+          authorization: `Bearer ${adminUser.token}`,
+        },
         payload: {
           name: 'test_duplicate',
           displayName: 'Another Duplicate',

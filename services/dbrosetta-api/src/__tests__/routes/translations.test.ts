@@ -106,6 +106,9 @@ describe('Translations API', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/translations',
+        headers: {
+          authorization: `Bearer ${adminUser.token}`,
+        },
         payload: {
           termId: testTermId,
           dialectId: 999999,
