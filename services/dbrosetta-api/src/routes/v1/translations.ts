@@ -7,7 +7,6 @@ import {
   paginationSchema,
   PaginatedResponse,
 } from '../../schemas';
-import { Translation } from '@prisma/client';
 
 export default async function translationsRoutes(
   app: FastifyInstance,

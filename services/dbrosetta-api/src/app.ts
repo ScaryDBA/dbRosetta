@@ -14,6 +14,11 @@ import v1Routes from './routes/v1';
 loadConfig();
 const config = getConfig();
 
+// Enable BigInt serialization globally
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
+
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
     logger: {
@@ -90,7 +95,7 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   // Register routes
   await app.register(healthRoutes);
-  await app.register(v1Routes, { prefix: '/v1' });
+  await app.register(v1Routes, { prefix: '/api/v1' });
 
   // Global error handler
   app.setErrorHandler((error, request, reply) => {

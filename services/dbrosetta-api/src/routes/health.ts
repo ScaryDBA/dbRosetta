@@ -6,6 +6,7 @@ interface HealthCheck {
   timestamp: string;
   uptime: number;
   database: {
+    connected: boolean;
     status: 'connected' | 'disconnected';
     responseTime?: number;
   };
@@ -29,6 +30,7 @@ export default async function healthRoutes(
             database: {
               type: 'object',
               properties: {
+                connected: { type: 'boolean' },
                 status: { type: 'string' },
                 responseTime: { type: 'number' },
               },
@@ -55,6 +57,7 @@ export default async function healthRoutes(
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
         database: {
+          connected: dbStatus === 'connected',
           status: dbStatus,
           responseTime,
         },
@@ -92,6 +95,12 @@ export default async function healthRoutes(
           type: 'object',
           properties: {
             status: { type: 'string' },
+            database: {
+              type: 'object',
+              properties: {
+                connected: { type: 'boolean' },
+              },
+            },
           },
         },
       },
@@ -99,9 +108,15 @@ export default async function healthRoutes(
     handler: async (_request, reply) => {
       try {
         await prisma.$queryRaw`SELECT 1`;
-        return reply.send({ status: 'ready' });
+        return reply.send({ 
+          status: 'ready',
+          database: { connected: true }
+        });
       } catch (error) {
-        return reply.status(503).send({ status: 'not ready' });
+        return reply.status(503).send({ 
+          status: 'not ready',
+          database: { connected: false }
+        });
       }
     },
   });

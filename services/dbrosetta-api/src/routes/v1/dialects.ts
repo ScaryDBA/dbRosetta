@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyPluginOptions, FastifyRequest } from 'fastify';
+import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import { prisma } from '../../database/prisma';
 import {
   dialectSchema,
@@ -7,7 +7,6 @@ import {
   paginationSchema,
   PaginatedResponse,
 } from '../../schemas';
-import { Dialect } from '@prisma/client';
 
 export default async function dialectsRoutes(
   app: FastifyInstance,
@@ -63,7 +62,7 @@ export default async function dialectsRoutes(
         }),
       ]);
 
-      const response: PaginatedResponse<Dialect> = {
+      const response: PaginatedResponse<typeof data[0]> = {
         data,
         pagination: {
           page: pagination.page,

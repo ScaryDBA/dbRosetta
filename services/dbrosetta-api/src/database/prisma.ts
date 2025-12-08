@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { logger } from '../utils/logger';
 
-const prismaClientSingleton = (): PrismaClient => {
+const prismaClientSingleton = () => {
   return new PrismaClient({
     log: [
       { emit: 'event', level: 'query' },
@@ -20,16 +20,16 @@ const prisma = globalThis.prismaGlobal ?? prismaClientSingleton();
 
 // Log queries in development
 if (process.env.NODE_ENV === 'development') {
-  prisma.$on('query', (e) => {
+  prisma.$on('query', (e: any) => {
     logger.debug({ query: e.query, params: e.params, duration: e.duration }, 'Database query');
   });
 }
 
-prisma.$on('error', (e) => {
+prisma.$on('error', (e: any) => {
   logger.error({ target: e.target, message: e.message }, 'Database error');
 });
 
-prisma.$on('warn', (e) => {
+prisma.$on('warn', (e: any) => {
   logger.warn({ target: e.target, message: e.message }, 'Database warning');
 });
 

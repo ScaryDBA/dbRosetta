@@ -7,7 +7,6 @@ import {
   paginationSchema,
   PaginatedResponse,
 } from '../../schemas';
-import { Artifact } from '@prisma/client';
 
 export default async function artifactsRoutes(
   app: FastifyInstance,

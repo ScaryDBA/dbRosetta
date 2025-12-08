@@ -7,7 +7,6 @@ import {
   paginationSchema,
   PaginatedResponse,
 } from '../../schemas';
-import { Term } from '@prisma/client';
 
 export default async function termsRoutes(
   app: FastifyInstance,
@@ -76,7 +75,7 @@ export default async function termsRoutes(
         }),
       ]);
 
-      const response: PaginatedResponse<Term> = {
+      const response: PaginatedResponse<typeof data[0]> = {
         data,
         pagination: {
           page: pagination.page,
