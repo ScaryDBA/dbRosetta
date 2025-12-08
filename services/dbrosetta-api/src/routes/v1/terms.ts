@@ -7,6 +7,7 @@ import {
   paginationSchema,
   PaginatedResponse,
 } from '../../schemas';
+import { authenticateRequest, requireAdmin } from '../../middleware/auth';
 
 export default async function termsRoutes(
   app: FastifyInstance,
@@ -136,6 +137,7 @@ export default async function termsRoutes(
 
   // Create new term
   app.post<{ Body: unknown }>('/', {
+    preHandler: [authenticateRequest, requireAdmin],
     schema: {
       description: 'Create a new canonical term',
       tags: ['Terms'],
@@ -208,6 +210,7 @@ export default async function termsRoutes(
 
   // Delete term
   app.delete<{ Params: { id: string } }>('/:id', {
+    preHandler: [authenticateRequest, requireAdmin],
     schema: {
       description: 'Delete a term (soft delete by setting isActive=false)',
       tags: ['Terms'],

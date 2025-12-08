@@ -1,16 +1,25 @@
 import { FastifyInstance } from 'fastify';
 import { buildApp } from '../../app';
 import { prismaTest, cleanupTestData } from '../setup';
+import { createTestUsers, cleanupTestUsers, TestUser } from '../helpers/users';
 
 describe('Dialects API', () => {
   let app: FastifyInstance;
+  let adminUser: TestUser;
+  let regularUser: TestUser;
 
   beforeAll(async () => {
     app = await buildApp();
     await app.ready();
+    
+    // Create test users
+    const users = await createTestUsers();
+    adminUser = users.admin;
+    regularUser = users.user;
   });
 
   afterAll(async () => {
+    await cleanupTestUsers('@test.com');
     await app.close();
   });
 
@@ -19,10 +28,13 @@ describe('Dialects API', () => {
   });
 
   describe('POST /api/v1/dialects', () => {
-    it('should create a new dialect', async () => {
+    it('should create a new dialect with admin auth', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/dialects',
+        headers: {
+          authorization: `Bearer ${adminUser.token}`,
+        },
         payload: {
           name: 'test_postgresql',
           displayName: 'Test PostgreSQL',
@@ -37,6 +49,35 @@ describe('Dialects API', () => {
       expect(body.name).toBe('test_postgresql');
       expect(body.displayName).toBe('Test PostgreSQL');
       expect(body.id).toBeDefined();
+    });
+
+    it('should reject creation without authentication', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/dialects',
+        payload: {
+          name: 'test_postgresql',
+          displayName: 'Test PostgreSQL',
+        },
+      });
+
+      expect(response.statusCode).toBe(401);
+    });
+
+    it('should reject creation with regular user role', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/dialects',
+        headers: {
+          authorization: `Bearer ${regularUser.token}`,
+        },
+        payload: {
+          name: 'test_postgresql',
+          displayName: 'Test PostgreSQL',
+        },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     it('should reject duplicate dialect names', async () => {
@@ -209,7 +250,7 @@ describe('Dialects API', () => {
   });
 
   describe('DELETE /api/v1/dialects/:id', () => {
-    it('should soft delete a dialect', async () => {
+    it('should soft delete a dialect with admin auth', async () => {
       const dialect = await prismaTest.dialect.create({
         data: {
           name: 'test_delete',
@@ -221,6 +262,9 @@ describe('Dialects API', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/api/v1/dialects/${dialect.id}`,
+        headers: {
+          authorization: `Bearer ${adminUser.token}`,
+        },
       });
 
       expect(response.statusCode).toBe(200);
@@ -230,6 +274,27 @@ describe('Dialects API', () => {
         where: { id: dialect.id },
       });
       expect(updated?.isActive).toBe(false);
+    });
+
+    it('should reject delete without authentication', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: '/api/v1/dialects/1',
+      });
+
+      expect(response.statusCode).toBe(401);
+    });
+
+    it('should reject delete with regular user role', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: '/api/v1/dialects/1',
+        headers: {
+          authorization: `Bearer ${regularUser.token}`,
+        },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 });

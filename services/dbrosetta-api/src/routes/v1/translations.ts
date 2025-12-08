@@ -7,6 +7,7 @@ import {
   paginationSchema,
   PaginatedResponse,
 } from '../../schemas';
+import { authenticateRequest, requireAdmin } from '../../middleware/auth';
 
 export default async function translationsRoutes(
   app: FastifyInstance,
@@ -140,6 +141,7 @@ export default async function translationsRoutes(
 
   // Create new translation
   app.post<{ Body: unknown }>('/', {
+    preHandler: [authenticateRequest, requireAdmin],
     schema: {
       description: 'Create a new translation',
       tags: ['Translations'],
@@ -248,6 +250,7 @@ export default async function translationsRoutes(
 
   // Delete translation
   app.delete<{ Params: { id: string } }>('/:id', {
+    preHandler: [authenticateRequest, requireAdmin],
     schema: {
       description: 'Delete a translation (soft delete by setting isActive=false)',
       tags: ['Translations'],

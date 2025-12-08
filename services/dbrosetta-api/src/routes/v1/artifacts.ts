@@ -7,6 +7,7 @@ import {
   paginationSchema,
   PaginatedResponse,
 } from '../../schemas';
+import { authenticateRequest, requireAdmin } from '../../middleware/auth';
 
 export default async function artifactsRoutes(
   app: FastifyInstance,
@@ -148,6 +149,7 @@ export default async function artifactsRoutes(
 
   // Create new artifact
   app.post<{ Body: unknown }>('/', {
+    preHandler: [authenticateRequest, requireAdmin],
     schema: {
       description: 'Create a new code artifact',
       tags: ['Artifacts'],
@@ -266,6 +268,7 @@ export default async function artifactsRoutes(
 
   // Delete artifact
   app.delete<{ Params: { id: string } }>('/:id', {
+    preHandler: [authenticateRequest, requireAdmin],
     schema: {
       description: 'Delete an artifact (hard delete)',
       tags: ['Artifacts'],

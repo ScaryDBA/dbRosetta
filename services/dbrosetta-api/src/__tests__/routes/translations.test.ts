@@ -1,18 +1,26 @@
 import { FastifyInstance } from 'fastify';
 import { buildApp } from '../../app';
 import { prismaTest, cleanupTestData } from '../setup';
+import { createTestUsers, cleanupTestUsers, TestUser } from '../helpers/users';
 
 describe('Translations API', () => {
   let app: FastifyInstance;
   let testDialectId: number;
   let testTermId: number;
+  let adminUser: TestUser;
+  let regularUser: TestUser;
 
   beforeAll(async () => {
     app = await buildApp();
     await app.ready();
+    
+    const users = await createTestUsers();
+    adminUser = users.admin;
+    regularUser = users.user;
   });
 
   afterAll(async () => {
+    await cleanupTestUsers('@test.com');
     await app.close();
   });
 
@@ -39,10 +47,13 @@ describe('Translations API', () => {
   });
 
   describe('POST /api/v1/translations', () => {
-    it('should create a new translation', async () => {
+    it('should create a new translation with admin auth', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/translations',
+        headers: {
+          authorization: `Bearer ${adminUser.token}`,
+        },
         payload: {
           termId: testTermId,
           dialectId: testDialectId,
@@ -61,10 +72,26 @@ describe('Translations API', () => {
       expect(body.dialectId).toBe(testDialectId);
     });
 
+    it('should reject creation without authentication', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/translations',
+        payload: {
+          termId: testTermId,
+          dialectId: testDialectId,
+          translatedTerm: 'SELECT',
+        },
+      });
+      expect(response.statusCode).toBe(401);
+    });
+
     it('should validate term exists', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/translations',
+        headers: {
+          authorization: `Bearer ${adminUser.token}`,
+        },
         payload: {
           termId: 999999,
           dialectId: testDialectId,
@@ -256,6 +283,9 @@ describe('Translations API', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/api/v1/translations/${translation.id}`,
+        headers: {
+          authorization: `Bearer ${adminUser.token}`,
+        },
       });
 
       expect(response.statusCode).toBe(200);

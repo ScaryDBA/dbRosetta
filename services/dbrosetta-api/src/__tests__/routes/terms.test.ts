@@ -1,16 +1,24 @@
 import { FastifyInstance } from 'fastify';
 import { buildApp } from '../../app';
 import { prismaTest, cleanupTestData } from '../setup';
+import { createTestUsers, cleanupTestUsers, TestUser } from '../helpers/users';
 
 describe('Terms API', () => {
   let app: FastifyInstance;
+  let adminUser: TestUser;
+  let regularUser: TestUser;
 
   beforeAll(async () => {
     app = await buildApp();
     await app.ready();
+    
+    const users = await createTestUsers();
+    adminUser = users.admin;
+    regularUser = users.user;
   });
 
   afterAll(async () => {
+    await cleanupTestUsers('@test.com');
     await app.close();
   });
 
@@ -19,10 +27,13 @@ describe('Terms API', () => {
   });
 
   describe('POST /api/v1/terms', () => {
-    it('should create a new term', async () => {
+    it('should create a new term with admin auth', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/terms',
+        headers: {
+          authorization: `Bearer ${adminUser.token}`,
+        },
         payload: {
           canonicalTerm: 'TEST_SELECT',
           category: 'DML',
@@ -38,6 +49,15 @@ describe('Terms API', () => {
       expect(body.canonicalTerm).toBe('TEST_SELECT');
       expect(body.category).toBe('DML');
       expect(body.id).toBeDefined();
+    });
+
+    it('should reject creation without authentication', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/terms',
+        payload: { canonicalTerm: 'TEST', category: 'DML', description: 'Test' },
+      });
+      expect(response.statusCode).toBe(401);
     });
 
     it('should validate required fields', async () => {
@@ -197,6 +217,9 @@ describe('Terms API', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/api/v1/terms/${term.id}`,
+        headers: {
+          authorization: `Bearer ${adminUser.token}`,
+        },
       });
 
       expect(response.statusCode).toBe(200);
@@ -205,6 +228,14 @@ describe('Terms API', () => {
         where: { id: term.id },
       });
       expect(updated?.isActive).toBe(false);
+    });
+
+    it('should reject delete without authentication', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: '/api/v1/terms/1',
+      });
+      expect(response.statusCode).toBe(401);
     });
   });
 });

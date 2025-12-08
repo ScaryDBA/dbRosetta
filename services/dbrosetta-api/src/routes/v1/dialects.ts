@@ -7,6 +7,7 @@ import {
   paginationSchema,
   PaginatedResponse,
 } from '../../schemas';
+import { authenticateRequest, requireAdmin } from '../../middleware/auth';
 
 export default async function dialectsRoutes(
   app: FastifyInstance,
@@ -124,8 +125,9 @@ export default async function dialectsRoutes(
 
   // Create new dialect
   app.post<{ Body: unknown }>('/', {
+    preHandler: [authenticateRequest, requireAdmin],
     schema: {
-      description: 'Create a new SQL dialect',
+      description: 'Create a new SQL dialect (requires admin)',
       tags: ['Dialects'],
       body: {
         type: 'object',
@@ -215,8 +217,9 @@ export default async function dialectsRoutes(
 
   // Delete dialect
   app.delete<{ Params: { id: string } }>('/:id', {
+    preHandler: [authenticateRequest, requireAdmin],
     schema: {
-      description: 'Delete a dialect (soft delete by setting isActive=false)',
+      description: 'Delete a dialect (soft delete by setting isActive=false, requires admin)',
       tags: ['Dialects'],
       params: {
         type: 'object',
