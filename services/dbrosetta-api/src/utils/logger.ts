@@ -1,12 +1,10 @@
 import pino from 'pino';
-import { getConfig } from '../config';
 
-const config = getConfig();
-
+// Create logger with default config that will be updated after config loads
 export const logger = pino({
-  level: config.LOG_LEVEL,
+  level: process.env.LOG_LEVEL || 'info',
   transport:
-    config.NODE_ENV === 'development'
+    process.env.NODE_ENV === 'development'
       ? {
           target: 'pino-pretty',
           options: {
@@ -23,7 +21,7 @@ export const logger = pino({
   },
   timestamp: pino.stdTimeFunctions.isoTime,
   base: {
-    env: config.NODE_ENV,
+    env: process.env.NODE_ENV || 'development',
   },
 });
 

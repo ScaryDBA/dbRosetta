@@ -45,7 +45,8 @@ export async function connectDatabase(): Promise<void> {
     logger.info('✅ Database connected successfully');
   } catch (error) {
     logger.error({ error }, '❌ Failed to connect to database');
-    throw error;
+    logger.warn('⚠️  Server will start without database connection. Health checks will report unhealthy.');
+    // Don't throw - allow server to start without DB for development/debugging
   }
 }
 
