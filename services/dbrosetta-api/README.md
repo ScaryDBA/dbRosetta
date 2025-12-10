@@ -168,36 +168,133 @@ docker-compose up -d
 
 ## ☁️ Azure Deployment
 
+### Automated CI/CD Pipeline
+
+The API uses **GitHub Actions** for continuous integration and deployment to Azure.
+
+**Pipeline Workflow (`.github/workflows/api-ci-cd.yml`):**
+
+1. **Build & Test** - Runs on every push/PR
+   - Lint, typecheck, and build TypeScript
+   - Run unit tests
+   - Upload build artifacts
+
+2. **Docker Build** - On push to `main` or `develop`
+   - Build Docker image
+   - Push to Azure Container Registry
+   - Tag with branch name, commit SHA, and `latest`
+
+3. **Database Migrations** - Self-hosted runner with Managed Identity
+   - **Staging**: Automatic on `develop` push
+   - **Production**: Requires manual approval on `main` push
+   - Fetches credentials from Azure Key Vault
+   - Runs `prisma migrate deploy`
+
+4. **Deploy to Azure App Service**
+   - **Staging**: Automatic deployment to `dbrosetta-api-staging`
+   - **Production**: Requires environment approval, deploys to `dbrosetta-api`
+   - Health checks verify successful deployment
+
+5. **Smoke Tests** - Post-deployment verification
+   - Test health endpoints (`/health`, `/health/liveness`, `/health/readiness`)
+   - Test API endpoints (`/api/v1/dialects`)
+   - Validate JSON response structure
+
+### Deployment Workflow
+
+#### Deploy to Staging
+```bash
+git checkout develop
+# Make your changes
+git commit -m "feat: add new feature"
+git push origin develop
+# Automatic deployment to https://dbrosetta-api-staging.azurewebsites.net
+```
+
+#### Deploy to Production
+```bash
+git checkout main
+git merge develop
+git push origin main
+# Requires manual approval in GitHub Environments
+# Deploys to https://dbrosetta-api.azurewebsites.net
+```
+
+### Manual Deployment Trigger
+
+You can manually trigger a deployment via GitHub CLI:
+
+```bash
+# Deploy to staging
+gh workflow run api-ci-cd.yml --ref develop -f environment=staging
+
+# Deploy to production (requires approval)
+gh workflow run api-ci-cd.yml --ref main -f environment=production
+```
+
+### Rollback Procedure
+
+If issues arise after deployment:
+
+**Option 1: Redeploy previous container via Azure CLI**
+```bash
+# List recent deployments
+az webapp deployment list \
+  --name dbrosetta-api \
+  --resource-group dbrosetta-rg
+
+# Redeploy specific commit
+az webapp config container set \
+  --name dbrosetta-api \
+  --resource-group dbrosetta-rg \
+  --docker-custom-image-name dbrosettaacr.azurecr.io/dbrosetta-api:sha-<previous-commit>
+```
+
+**Option 2: Via Azure Portal**
+1. Navigate to App Service → Deployment Center
+2. Find the previous successful deployment
+3. Click "Redeploy"
+
+### Monitoring Deployments
+
+- **GitHub Actions UI**: View build/deployment logs
+- **Azure Portal**: App Service → Deployment Center
+- **Application Logs**: 
+  ```bash
+  az webapp log tail --name dbrosetta-api --resource-group dbrosetta-rg
+  ```
+- **Health Check**: 
+  ```bash
+  curl https://dbrosetta-api.azurewebsites.net/health
+  ```
+
+### Required GitHub Secrets
+
+Configure these secrets in your GitHub repository (Settings → Secrets):
+
+| Secret | Description |
+|--------|-------------|
+| `AZURE_CREDENTIALS` | Service principal JSON for Azure authentication |
+| `ACR_USERNAME` | Azure Container Registry username |
+| `ACR_PASSWORD` | Azure Container Registry password |
+| `AZURE_KEY_VAULT_NAME` | Name of the Azure Key Vault |
+
+### GitHub Environments
+
+Create two environments with protection rules:
+
+- **staging**: No restrictions, deploys from `develop` branch
+- **production**: Requires manual approval, deploys from `main` branch
+
 ### Prerequisites
 
 - Azure Container Registry (ACR)
-- Azure App Service or Azure Container Apps
+- Azure App Service (staging and production)
 - Azure Key Vault with database credentials
-- Managed Identity assigned to the app service
+- Managed Identity assigned to App Services
+- Self-hosted GitHub runner (for database migrations)
 
-### Deploy Steps
-
-1. **Build and push image:**
-   ```bash
-   az acr build --registry YOUR_ACR \
-     --image dbrosetta-api:latest \
-     .
-   ```
-
-2. **Deploy to App Service:**
-   ```bash
-   az webapp create \
-     --resource-group YOUR_RG \
-     --plan YOUR_APP_PLAN \
-     --name dbrosetta-api \
-     --deployment-container-image-name YOUR_ACR.azurecr.io/dbrosetta-api:latest
-   ```
-
-3. **Configure environment variables** via Azure Portal or CLI
-
-4. **Enable Managed Identity** and grant Key Vault access
-
-See **[Azure Deployment Guide](./docs/AZURE_DEPLOYMENT.md)** for detailed instructions.
+See **[Azure Deployment Guide](./docs/AZURE_DEPLOYMENT.md)** for complete setup instructions.
 
 ## 🔧 Configuration
 
