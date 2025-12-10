@@ -1,0 +1,26 @@
+{
+  "ddosSettings": {
+    "protectionMode": "VirtualNetworkInherited"
+  },
+  "etag": "W/\"49cfd90e-a965-4e02-999f-ff9705d49f5f\"",
+  "id": "/subscriptions/af1c0c61-4f7e-4f30-b4d9-1740a72f0bf6/resourceGroups/dbRosetta/providers/Microsoft.Network/publicIPAddresses/pip-dbrosetta-runner",
+  "idleTimeoutInMinutes": 4,
+  "ipAddress": "23.96.182.139",
+  "ipConfiguration": {
+    "id": "/subscriptions/af1c0c61-4f7e-4f30-b4d9-1740a72f0bf6/resourceGroups/dbRosetta/providers/Microsoft.Network/networkInterfaces/vm-dbrosetta-runnerVMNic/ipConfigurations/ipconfigvm-dbrosetta-runner",
+    "resourceGroup": "dbRosetta"
+  },
+  "ipTags": [],
+  "location": "northcentralus",
+  "name": "pip-dbrosetta-runner",
+  "provisioningState": "Succeeded",
+  "publicIPAddressVersion": "IPv4",
+  "publicIPAllocationMethod": "Static",
+  "resourceGroup": "dbRosetta",
+  "resourceGuid": "c7a3e2e5-25b5-41e5-9d1f-8f15887c05a1",
+  "sku": {
+    "name": "Standard",
+    "tier": "Regional"
+  },
+  "type": "Microsoft.Network/publicIPAddresses"
+}

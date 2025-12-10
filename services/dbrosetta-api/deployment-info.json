@@ -1,0 +1,21 @@
+{
+  "ACR": {
+    "Name": "dbrosettaacr",
+    "LoginServer": "dbrosettaacr.azurecr.io",
+    "Username": "dbrosettaacr"
+  },
+  "KeyVault": "dbrosetta-kv",
+  "Database": {
+    "Name": "dbrosetta",
+    "User": "postgres",
+    "Host": "rosettacluster.postgres.database.azure.com"
+  },
+  "Subscription": "ZFT",
+  "SubscriptionId": "140650e4-d1c8-429e-b3a3-ecab353e292d",
+  "ResourceGroup": "dbRosetta",
+  "AppServices": {
+    "Production": "dbrosetta-api",
+    "Staging": "dbrosetta-api-staging"
+  },
+  "Timestamp": "2025-12-10 14:34:18"
+}

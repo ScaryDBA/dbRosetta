@@ -1,0 +1,1267 @@
+{
+	"info": {
+		"_postman_id": "dbrosetta-api-collection",
+		"name": "dbRosetta API",
+		"description": "Complete API collection for dbRosetta - Database SQL dialect translation service\n\n## Authentication\n\nMost endpoints require JWT Bearer token authentication. Use the Auth folder to:\n1. Register a new user (POST /auth/register)\n2. Login to get access token (POST /auth/login)\n3. Token is automatically saved to environment variable\n\n## Base URL\n\nSet the `baseUrl` environment variable:\n- Local: `http://localhost:3000`\n- Staging: `https://dbrosetta-api-staging.azurewebsites.net`\n- Production: `https://dbrosetta-api.azurewebsites.net`\n\n## Environments\n\nUse the included environment templates for local, staging, and production.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{accessToken}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Auto-refresh token if expired",
+					"const token = pm.environment.get('accessToken');",
+					"const refreshToken = pm.environment.get('refreshToken');",
+					"",
+					"if (!token && refreshToken) {",
+					"    console.log('Access token missing, attempting refresh...');",
+					"    // Token refresh logic handled in Auth/Refresh Token request",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global test script",
+					"pm.test('Response time is less than 2000ms', function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+					"});",
+					"",
+					"pm.test('Response has correct content type', function () {",
+					"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+					"});"
+				]
+			}
+		}
+	],
+	"item": [
+		{
+			"name": "Health",
+			"item": [
+				{
+					"name": "Health Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has status field', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status');",
+									"    pm.expect(jsonData.status).to.eql('ok');",
+									"});",
+									"",
+									"pm.test('Database connection is healthy', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.database).to.have.property('connected');",
+									"    pm.expect(jsonData.database.connected).to.eql(true);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health",
+							"host": ["{{baseUrl}}"],
+							"path": ["health"]
+						},
+						"description": "Overall health check including database connectivity"
+					},
+					"response": []
+				},
+				{
+					"name": "Liveness Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Service is alive', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql('ok');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health/liveness",
+							"host": ["{{baseUrl}}"],
+							"path": ["health", "liveness"]
+						},
+						"description": "Liveness probe - checks if service is running (no database check)"
+					},
+					"response": []
+				},
+				{
+					"name": "Readiness Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Service is ready', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql('ready');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health/readiness",
+							"host": ["{{baseUrl}}"],
+							"path": ["health", "readiness"]
+						},
+						"description": "Readiness probe - checks if service is ready to accept traffic"
+					},
+					"response": []
+				}
+			],
+			"description": "Health check endpoints for monitoring and orchestration"
+		},
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Register User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Response has user and tokens', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('user');",
+									"    pm.expect(jsonData).to.have.property('token');",
+									"    pm.expect(jsonData).to.have.property('refreshToken');",
+									"    ",
+									"    // Save tokens to environment",
+									"    pm.environment.set('accessToken', jsonData.token);",
+									"    pm.environment.set('refreshToken', jsonData.refreshToken);",
+									"    pm.environment.set('userId', jsonData.user.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"SecurePassword123!\",\n  \"name\": \"Test User\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "register"]
+						},
+						"description": "Register a new user account"
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has tokens', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('token');",
+									"    pm.expect(jsonData).to.have.property('refreshToken');",
+									"    ",
+									"    // Save tokens for subsequent requests",
+									"    pm.environment.set('accessToken', jsonData.token);",
+									"    pm.environment.set('refreshToken', jsonData.refreshToken);",
+									"    pm.environment.set('userId', jsonData.user.id);",
+									"    ",
+									"    console.log('Access token saved to environment');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"SecurePassword123!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "login"]
+						},
+						"description": "Login with email and password to get JWT tokens"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has user details', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('email');",
+									"    pm.expect(jsonData).to.have.property('role');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "me"]
+						},
+						"description": "Get current authenticated user details"
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has new access token', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('token');",
+									"    ",
+									"    // Update access token",
+									"    pm.environment.set('accessToken', jsonData.token);",
+									"    console.log('Access token refreshed');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/refresh",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "refresh"]
+						},
+						"description": "Refresh access token using refresh token"
+					},
+					"response": []
+				},
+				{
+					"name": "Change Password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Password changed successfully', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('message');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"currentPassword\": \"SecurePassword123!\",\n  \"newPassword\": \"NewSecurePassword456!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/change-password",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "change-password"]
+						},
+						"description": "Change password for authenticated user"
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Clear tokens from environment",
+									"pm.environment.unset('accessToken');",
+									"pm.environment.unset('refreshToken');",
+									"console.log('Tokens cleared from environment');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "logout"]
+						},
+						"description": "Logout and invalidate refresh token"
+					},
+					"response": []
+				},
+				{
+					"name": "WordPress Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has tokens and user', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('token');",
+									"    pm.expect(jsonData).to.have.property('refreshToken');",
+									"    pm.expect(jsonData).to.have.property('user');",
+									"    ",
+									"    // Save tokens",
+									"    pm.environment.set('accessToken', jsonData.token);",
+									"    pm.environment.set('refreshToken', jsonData.refreshToken);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"wordpressToken\": \"YOUR_WORDPRESS_JWT_TOKEN\",\n  \"autoRegister\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/wordpress-login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "wordpress-login"]
+						},
+						"description": "Authenticate using WordPress JWT token"
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication and user management endpoints"
+		},
+		{
+			"name": "Dialects",
+			"item": [
+				{
+					"name": "List Dialects",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has data and pagination', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"    pm.expect(jsonData).to.have.property('pagination');",
+									"    pm.expect(jsonData.data).to.be.an('array');",
+									"    ",
+									"    if (jsonData.data.length > 0) {",
+									"        pm.environment.set('dialectId', jsonData.data[0].id);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/dialects?page=1&limit=10&sortBy=name&sortOrder=asc",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "dialects"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "sortBy",
+									"value": "name"
+								},
+								{
+									"key": "sortOrder",
+									"value": "asc"
+								},
+								{
+									"key": "name",
+									"value": "postgres",
+									"disabled": true
+								},
+								{
+									"key": "isActive",
+									"value": "true",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get list of SQL dialects with pagination and filtering"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Dialect by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has dialect details', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('name');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/dialects/{{dialectId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "dialects", "{{dialectId}}"]
+						},
+						"description": "Get specific dialect by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Dialect",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Dialect created successfully', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.environment.set('newDialectId', jsonData.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Oracle\",\n  \"description\": \"Oracle Database SQL dialect\",\n  \"version\": \"19c\",\n  \"isActive\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/dialects",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "dialects"]
+						},
+						"description": "Create a new SQL dialect (requires authentication)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Dialect",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"description\": \"Updated Oracle Database SQL dialect\",\n  \"version\": \"21c\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/dialects/{{dialectId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "dialects", "{{dialectId}}"]
+						},
+						"description": "Update existing dialect (requires authentication)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Dialect",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/dialects/{{dialectId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "dialects", "{{dialectId}}"]
+						},
+						"description": "Soft delete dialect (requires authentication)"
+					},
+					"response": []
+				}
+			],
+			"description": "SQL dialect management endpoints"
+		},
+		{
+			"name": "Terms",
+			"item": [
+				{
+					"name": "List Terms",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has data and pagination', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"    pm.expect(jsonData).to.have.property('pagination');",
+									"    ",
+									"    if (jsonData.data.length > 0) {",
+									"        pm.environment.set('termId', jsonData.data[0].id);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/terms?page=1&limit=10&category=DDL&sortBy=canonicalTerm&sortOrder=asc",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "terms"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "category",
+									"value": "DDL"
+								},
+								{
+									"key": "subcategory",
+									"value": "Table",
+									"disabled": true
+								},
+								{
+									"key": "search",
+									"value": "create",
+									"disabled": true
+								},
+								{
+									"key": "sortBy",
+									"value": "canonicalTerm"
+								},
+								{
+									"key": "sortOrder",
+									"value": "asc"
+								}
+							]
+						},
+						"description": "Get list of canonical terms with pagination, filtering, and search"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Term by ID",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/terms/{{termId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "terms", "{{termId}}"]
+						},
+						"description": "Get specific term with all translations"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Term",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"canonicalTerm\": \"CREATE TABLE\",\n  \"description\": \"Statement to create a new database table\",\n  \"category\": \"DDL\",\n  \"subcategory\": \"Table\",\n  \"isActive\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/terms",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "terms"]
+						},
+						"description": "Create a new canonical term (requires authentication)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Term",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"description\": \"Updated description for CREATE TABLE statement\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/terms/{{termId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "terms", "{{termId}}"]
+						},
+						"description": "Update existing term (requires authentication)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Term",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/terms/{{termId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "terms", "{{termId}}"]
+						},
+						"description": "Soft delete term (requires authentication)"
+					},
+					"response": []
+				}
+			],
+			"description": "Canonical term management endpoints"
+		},
+		{
+			"name": "Translations",
+			"item": [
+				{
+					"name": "List Translations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has translations', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"    pm.expect(jsonData).to.have.property('pagination');",
+									"    ",
+									"    if (jsonData.data.length > 0) {",
+									"        pm.environment.set('translationId', jsonData.data[0].id);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/translations?page=1&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "translations"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "termId",
+									"value": "{{termId}}",
+									"disabled": true
+								},
+								{
+									"key": "dialectId",
+									"value": "{{dialectId}}",
+									"disabled": true
+								},
+								{
+									"key": "minConfidence",
+									"value": "0.8",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get list of translations with filtering options"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Translation by ID",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/translations/{{translationId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "translations", "{{translationId}}"]
+						},
+						"description": "Get specific translation with term and dialect details"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Translation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"termId\": \"{{termId}}\",\n  \"dialectId\": \"{{dialectId}}\",\n  \"translatedText\": \"CREATE TABLE table_name (...)\",\n  \"notes\": \"Standard PostgreSQL syntax\",\n  \"confidenceLevel\": 1.0,\n  \"isActive\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/translations",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "translations"]
+						},
+						"description": "Create a new translation (requires authentication)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Translation",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"translatedText\": \"CREATE TABLE IF NOT EXISTS table_name (...)\",\n  \"confidenceLevel\": 0.95\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/translations/{{translationId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "translations", "{{translationId}}"]
+						},
+						"description": "Update existing translation (requires authentication)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Translation",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/translations/{{translationId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "translations", "{{translationId}}"]
+						},
+						"description": "Soft delete translation (requires authentication)"
+					},
+					"response": []
+				}
+			],
+			"description": "Translation management endpoints"
+		},
+		{
+			"name": "Artifacts",
+			"item": [
+				{
+					"name": "List Artifacts",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has artifacts', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"    pm.expect(jsonData).to.have.property('pagination');",
+									"    ",
+									"    if (jsonData.data.length > 0) {",
+									"        pm.environment.set('artifactId', jsonData.data[0].id);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/artifacts?page=1&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "artifacts"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "artifactType",
+									"value": "procedure",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "verified",
+									"disabled": true
+								},
+								{
+									"key": "sourceDialectId",
+									"value": "{{dialectId}}",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get list of code artifacts with filtering"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Artifact by ID",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/artifacts/{{artifactId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "artifacts", "{{artifactId}}"]
+						},
+						"description": "Get specific artifact with source and target dialects"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Artifact",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"User Login Procedure\",\n  \"artifactType\": \"procedure\",\n  \"sourceCode\": \"CREATE OR REPLACE PROCEDURE login_user(...) AS BEGIN ... END;\",\n  \"translatedCode\": \"CREATE OR REPLACE FUNCTION login_user(...) RETURNS ... AS $$ BEGIN ... END; $$ LANGUAGE plpgsql;\",\n  \"sourceDialectId\": \"{{dialectId}}\",\n  \"targetDialectId\": \"{{dialectId}}\",\n  \"status\": \"draft\",\n  \"translationSummary\": \"Converted Oracle procedure to PostgreSQL function\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/artifacts",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "artifacts"]
+						},
+						"description": "Create a new code artifact (requires authentication)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Artifact",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"verified\",\n  \"translationSummary\": \"Tested and verified in PostgreSQL 14\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/artifacts/{{artifactId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "artifacts", "{{artifactId}}"]
+						},
+						"description": "Update existing artifact (requires authentication)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Artifact",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/artifacts/{{artifactId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "artifacts", "{{artifactId}}"]
+						},
+						"description": "Permanently delete artifact (requires authentication)"
+					},
+					"response": []
+				}
+			],
+			"description": "Code artifact management endpoints"
+		},
+		{
+			"name": "Query",
+			"item": [
+				{
+					"name": "Execute Query",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"entity\": \"terms\",\n  \"filters\": {\n    \"category\": \"DDL\",\n    \"isActive\": true\n  },\n  \"fields\": [\"id\", \"canonicalTerm\", \"description\", \"category\"],\n  \"limit\": 20,\n  \"offset\": 0,\n  \"orderBy\": {\n    \"field\": \"canonicalTerm\",\n    \"direction\": \"asc\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/query",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "query"]
+						},
+						"description": "Execute safe parameterized query with filters and field selection"
+					},
+					"response": []
+				},
+				{
+					"name": "Query Help",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/query/help",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "query", "help"]
+						},
+						"description": "Get query endpoint documentation and examples"
+					},
+					"response": []
+				}
+			],
+			"description": "Safe parameterized query endpoint"
+		},
+		{
+			"name": "Schema",
+			"item": [
+				{
+					"name": "Get Full Schema",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/schema",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "schema"]
+						},
+						"description": "Get complete database schema overview"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Entity Schema",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/schema/terms",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "schema", "terms"]
+						},
+						"description": "Get schema for specific entity with sample data"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Statistics",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/schema/stats/overview",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "schema", "stats", "overview"]
+						},
+						"description": "Get database statistics for all entities"
+					},
+					"response": []
+				}
+			],
+			"description": "Schema introspection endpoints"
+		},
+		{
+			"name": "Metrics",
+			"item": [
+				{
+					"name": "Prometheus Metrics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/metrics",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "metrics"]
+						},
+						"description": "Get Prometheus-compatible metrics (admin only, text format)"
+					},
+					"response": []
+				},
+				{
+					"name": "JSON Metrics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/metrics/json",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "metrics", "json"]
+						},
+						"description": "Get metrics in JSON format (admin only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Metrics endpoints for monitoring"
+		}
+	]
+}

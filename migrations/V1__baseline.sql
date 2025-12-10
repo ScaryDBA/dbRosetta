@@ -34,7 +34,7 @@ SET row_security = off;
 -- Name: dbrosetta; Type: SCHEMA; Schema: -; Owner: -
 --
 
-CREATE SCHEMA dbrosetta;
+--CREATE SCHEMA dbrosetta;
 
 
 SET default_tablespace = '';
@@ -592,6 +592,4 @@ ALTER TABLE ONLY dbrosetta.translations
 --
 -- PostgreSQL database dump complete
 --
-
-\unrestrict TKSQTIfcjNPZfKWxHXhyhwmXArG1YtRsnYn3dW1zcCwckfIOMLQVqGaNPtDhh8s
 
