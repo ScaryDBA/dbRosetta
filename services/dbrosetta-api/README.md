@@ -142,6 +142,33 @@ npm run test:coverage
 
 Coverage reports are generated in `./coverage/lcov-report/index.html`.
 
+### Postman Collection Testing
+
+The API includes a comprehensive **Postman collection** with 40+ requests covering all endpoints.
+
+**Run collection locally:**
+```bash
+npm run postman:test
+```
+
+**Run against staging:**
+```bash
+npm run postman:test:staging
+```
+
+**Run against production:**
+```bash
+npm run postman:test:production
+```
+
+**Import into Postman:**
+1. Open Postman
+2. Click **Import** → Select files from `postman/` folder
+3. Select environment: Local, Staging, or Production
+4. Start with **Health Check**, then **Auth > Login**
+
+See **[Postman Collection Documentation](postman/README.md)** for complete usage guide.
+
 ## 🐳 Docker
 
 ### Build Image
