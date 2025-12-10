@@ -24,8 +24,8 @@ on:
 env:
   NODE_VERSION: '18.x'
   API_PATH: 'services/dbrosetta-api'
-  AZURE_WEBAPP_NAME: 'dbrosetta-api'  # TODO: Update with your Azure App Service name
-  AZURE_CONTAINER_REGISTRY: 'dbrosettaacr'  # TODO: Update with your ACR name
+  AZURE_WEBAPP_NAME: 'dbrosetta-api'
+  AZURE_CONTAINER_REGISTRY: 'dbrosettaacr'
   IMAGE_NAME: 'dbrosetta-api'
 
 jobs:

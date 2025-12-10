@@ -15,6 +15,12 @@ flyway.conf
 .runner-config
 vm-creation-output.json
 
+# Azure deployment outputs (contains credentials)
+azure-credentials.json
+service-principal.json
+deployment-output.txt
+*-credentials.txt
+
 # SSH keys
 *.pem
 *.key
