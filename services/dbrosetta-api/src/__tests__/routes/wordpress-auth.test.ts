@@ -13,7 +13,6 @@ describe('WordPress JWT Integration', () => {
   const wpSecret = process.env.WORDPRESS_JWT_SECRET!;
 
   beforeAll(async () => {
-    
     app = await buildApp();
     await app.ready();
 
@@ -36,7 +35,7 @@ describe('WordPress JWT Integration', () => {
         },
       },
     });
-    
+
     await app.close();
   });
 

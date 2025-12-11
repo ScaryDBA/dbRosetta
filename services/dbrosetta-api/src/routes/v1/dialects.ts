@@ -63,7 +63,7 @@ export default async function dialectsRoutes(
         }),
       ]);
 
-      const response: PaginatedResponse<typeof data[0]> = {
+      const response: PaginatedResponse<(typeof data)[0]> = {
         data,
         pagination: {
           page: pagination.page,

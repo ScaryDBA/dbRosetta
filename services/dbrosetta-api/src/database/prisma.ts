@@ -12,7 +12,6 @@ const prismaClientSingleton = () => {
 };
 
 declare global {
-  // eslint-disable-next-line no-var
   var prismaGlobal: undefined | ReturnType<typeof prismaClientSingleton>;
 }
 
@@ -45,7 +44,9 @@ export async function connectDatabase(): Promise<void> {
     logger.info('✅ Database connected successfully');
   } catch (error) {
     logger.error({ error }, '❌ Failed to connect to database');
-    logger.warn('⚠️  Server will start without database connection. Health checks will report unhealthy.');
+    logger.warn(
+      '⚠️  Server will start without database connection. Health checks will report unhealthy.'
+    );
     // Don't throw - allow server to start without DB for development/debugging
   }
 }

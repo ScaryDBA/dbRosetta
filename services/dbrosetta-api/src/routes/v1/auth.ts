@@ -9,10 +9,7 @@ import {
   changePasswordSchema,
 } from '../../schemas/auth';
 import { authenticateRequest } from '../../middleware/auth';
-import {
-  verifyWordPressToken,
-  extractEmailFromWordPressPayload,
-} from '../../utils/wordpress-jwt';
+import { verifyWordPressToken, extractEmailFromWordPressPayload } from '../../utils/wordpress-jwt';
 import { logger } from '../../utils/logger';
 
 export default async function authRoutes(
@@ -209,7 +206,8 @@ export default async function authRoutes(
           },
           autoRegister: {
             type: 'boolean',
-            description: 'Automatically create a user account if the email does not exist (default: true)',
+            description:
+              'Automatically create a user account if the email does not exist (default: true)',
             default: true,
           },
         },
@@ -257,7 +255,7 @@ export default async function authRoutes(
         // Auto-register user if they don't exist and autoRegister is enabled (default true)
         if (!user && (body.autoRegister ?? true)) {
           logger.info({ email }, 'Creating new user from WordPress JWT');
-          
+
           user = await prisma.user.create({
             data: {
               email,
@@ -266,7 +264,7 @@ export default async function authRoutes(
               role: 'user', // Default role for WordPress users
             },
           });
-          
+
           isNew = true;
         }
 
@@ -302,8 +300,11 @@ export default async function authRoutes(
           refreshToken,
         });
       } catch (error) {
-        logger.error({ error: error instanceof Error ? error.message : 'Unknown error' }, 'WordPress JWT authentication failed');
-        
+        logger.error(
+          { error: error instanceof Error ? error.message : 'Unknown error' },
+          'WordPress JWT authentication failed'
+        );
+
         return reply.status(401).send({
           error: 'Unauthorized',
           message: error instanceof Error ? error.message : 'WordPress token validation failed',
