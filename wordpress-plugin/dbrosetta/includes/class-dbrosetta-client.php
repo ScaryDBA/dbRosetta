@@ -68,23 +68,18 @@ class DBRosetta_Client {
         $search_term = sanitize_text_field($search_term);
         $database = sanitize_text_field($database);
 
-        // Build query filters
-        $filters = array();
-        
-        // Search for term in standard_term field
-        $filters[] = array(
-            'field' => 'standard_term',
-            'operator' => 'like',
-            'value' => $search_term
+        // Build query filters as object (key-value pairs)
+        // The API expects exact matches or uses Prisma's filtering
+        $filters = array(
+            'canonicalTerm' => $search_term
         );
 
         // Build request body for the /query endpoint
         $body = array(
             'entity' => 'terms',
             'filters' => $filters,
-            'select' => array('term_id', 'standard_term', 'category', 'description', 'is_active'),
             'limit' => 50,
-            'page' => 1
+            'offset' => 0
         );
 
         // Make the API request
