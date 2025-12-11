@@ -100,7 +100,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   // Global error handler
   app.setErrorHandler((error, request, reply) => {
     logger.error({ error, reqId: request.id }, 'Request error');
-    
+
     const statusCode = error.statusCode || 500;
     const message = statusCode === 500 ? 'Internal Server Error' : error.message;
 
@@ -123,14 +123,10 @@ export async function startServer(): Promise<FastifyInstance> {
     const app = await buildApp();
     await app.listen({ port: config.PORT, host: config.HOST });
 
-    logger.info(
-      `🚀 Server running at http://${config.HOST}:${config.PORT}`
-    );
-    
+    logger.info(`🚀 Server running at http://${config.HOST}:${config.PORT}`);
+
     if (config.ENABLE_SWAGGER) {
-      logger.info(
-        `📚 API Documentation available at http://${config.HOST}:${config.PORT}/docs`
-      );
+      logger.info(`📚 API Documentation available at http://${config.HOST}:${config.PORT}/docs`);
     }
 
     // Graceful shutdown

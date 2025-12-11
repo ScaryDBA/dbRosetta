@@ -42,7 +42,10 @@ export async function authenticateRequest(
 
     logger.debug({ userId: payload.userId, role: payload.role }, 'User authenticated');
   } catch (error) {
-    logger.warn({ error: error instanceof Error ? error.message : 'Unknown error' }, 'Authentication failed');
+    logger.warn(
+      { error: error instanceof Error ? error.message : 'Unknown error' },
+      'Authentication failed'
+    );
     return reply.status(401).send({
       error: 'Unauthorized',
       message: error instanceof Error ? error.message : 'Invalid or expired token',
@@ -53,10 +56,7 @@ export async function authenticateRequest(
 /**
  * Require admin role
  */
-export async function requireAdmin(
-  request: FastifyRequest,
-  reply: FastifyReply
-): Promise<void> {
+export async function requireAdmin(request: FastifyRequest, reply: FastifyReply): Promise<void> {
   // authenticateRequest must be called first
   if (!request.user) {
     return reply.status(401).send({
@@ -66,10 +66,7 @@ export async function requireAdmin(
   }
 
   if (request.user.role !== 'admin') {
-    logger.warn(
-      { userId: request.user.userId, role: request.user.role },
-      'Admin access denied'
-    );
+    logger.warn({ userId: request.user.userId, role: request.user.role }, 'Admin access denied');
     return reply.status(403).send({
       error: 'Forbidden',
       message: 'Admin privileges required',
@@ -80,10 +77,7 @@ export async function requireAdmin(
 /**
  * Optional authentication - attaches user if token is present but doesn't require it
  */
-export async function optionalAuth(
-  request: FastifyRequest,
-  _reply: FastifyReply
-): Promise<void> {
+export async function optionalAuth(request: FastifyRequest, _reply: FastifyReply): Promise<void> {
   try {
     const authHeader = request.headers.authorization;
 

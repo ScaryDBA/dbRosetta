@@ -24,7 +24,7 @@ const envSchema = z.object({
   JWT_ISSUER: z.string().url(),
   JWT_AUDIENCE: z.string(),
   JWKS_URI: z.string().url(),
-  
+
   // WordPress Integration
   WORDPRESS_JWT_SECRET: z.string().optional(),
 

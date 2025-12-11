@@ -12,7 +12,7 @@ describe('Translations API', () => {
   beforeAll(async () => {
     app = await buildApp();
     await app.ready();
-    
+
     const users = await createTestUsers();
     adminUser = users.admin;
   });

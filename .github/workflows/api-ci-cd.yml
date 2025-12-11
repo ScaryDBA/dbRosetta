@@ -53,7 +53,7 @@ jobs:
       
       - name: Lint code
         working-directory: ${{ env.API_PATH }}
-        run: npm run lint
+        run: npm run lint -- --max-warnings 50
       
       - name: Type check
         working-directory: ${{ env.API_PATH }}
