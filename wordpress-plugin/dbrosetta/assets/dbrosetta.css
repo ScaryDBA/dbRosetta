@@ -1,0 +1,407 @@
+/**
+ * dbRosetta Plugin Styles
+ *
+ * @package DBRosetta
+ */
+
+/* ===================================================================
+   Container & Layout
+   =================================================================== */
+
+.dbrosetta-search-container,
+.dbrosetta-results-container,
+.dbrosetta-error {
+    max-width: 800px;
+    margin: 2rem auto;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+/* ===================================================================
+   Search Form
+   =================================================================== */
+
+.dbrosetta-search-form {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.dbrosetta-form-header {
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 1rem;
+}
+
+.dbrosetta-form-header h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+    color: #1a1a1a;
+}
+
+.dbrosetta-form-description {
+    margin: 0;
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.dbrosetta-form-row {
+    margin-bottom: 1.5rem;
+}
+
+.dbrosetta-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #333;
+    font-size: 0.95rem;
+}
+
+.dbrosetta-required {
+    color: #dc3545;
+    margin-left: 0.25rem;
+}
+
+.dbrosetta-input,
+.dbrosetta-select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d0d0d0;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.dbrosetta-input:focus,
+.dbrosetta-select:focus {
+    outline: none;
+    border-color: #0073aa;
+    box-shadow: 0 0 0 3px rgba(0, 115, 170, 0.1);
+}
+
+.dbrosetta-help-text {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: #666;
+    font-style: italic;
+}
+
+.dbrosetta-form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f0f0f0;
+}
+
+/* ===================================================================
+   Buttons
+   =================================================================== */
+
+.dbrosetta-button {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.dbrosetta-button:hover {
+    transform: translateY(-1px);
+}
+
+.dbrosetta-button:active {
+    transform: translateY(0);
+}
+
+.dbrosetta-button-primary {
+    background-color: #0073aa;
+    color: #ffffff;
+}
+
+.dbrosetta-button-primary:hover {
+    background-color: #005a87;
+    color: #ffffff;
+}
+
+.dbrosetta-button-secondary {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.dbrosetta-button-secondary:hover {
+    background-color: #e0e0e0;
+    color: #333;
+}
+
+/* ===================================================================
+   Results Container
+   =================================================================== */
+
+.dbrosetta-results-container {
+    margin-top: 2rem;
+}
+
+.dbrosetta-results-header {
+    margin-bottom: 1.5rem;
+}
+
+.dbrosetta-results-title {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #1a1a1a;
+}
+
+.dbrosetta-no-results {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 4px;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.dbrosetta-no-results p {
+    margin: 0;
+    color: #856404;
+}
+
+/* ===================================================================
+   Result Items
+   =================================================================== */
+
+.dbrosetta-results-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.dbrosetta-result-item {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.2s;
+}
+
+.dbrosetta-result-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dbrosetta-result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.dbrosetta-term-name {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #1a1a1a;
+    font-family: "Courier New", monospace;
+}
+
+.dbrosetta-category-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.dbrosetta-category-ddl { background: #e3f2fd; color: #1565c0; }
+.dbrosetta-category-dml { background: #f3e5f5; color: #7b1fa2; }
+.dbrosetta-category-dcl { background: #e8f5e9; color: #2e7d32; }
+.dbrosetta-category-tcl { background: #fff3e0; color: #e65100; }
+.dbrosetta-category-dql { background: #fce4ec; color: #c2185b; }
+
+.dbrosetta-term-description {
+    margin-bottom: 1rem;
+}
+
+.dbrosetta-term-description p {
+    margin: 0;
+    color: #555;
+    line-height: 1.6;
+}
+
+/* ===================================================================
+   Translations
+   =================================================================== */
+
+.dbrosetta-translations {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #f0f0f0;
+}
+
+.dbrosetta-translations-title {
+    margin: 0 0 1rem 0;
+    font-size: 1rem;
+    color: #333;
+    font-weight: 600;
+}
+
+.dbrosetta-translations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.dbrosetta-translation-item {
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 1rem;
+}
+
+.dbrosetta-translation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.dbrosetta-dialect-name {
+    font-weight: 600;
+    color: #1a1a1a;
+    font-size: 0.9rem;
+}
+
+.dbrosetta-confidence {
+    font-size: 0.75rem;
+    color: #666;
+}
+
+.dbrosetta-translation-text {
+    margin: 0.5rem 0;
+}
+
+.dbrosetta-translation-text code {
+    display: block;
+    background: #ffffff;
+    border: 1px solid #d0d0d0;
+    border-radius: 3px;
+    padding: 0.5rem;
+    font-family: "Courier New", Consolas, monospace;
+    font-size: 0.9rem;
+    color: #d63384;
+    word-break: break-word;
+}
+
+.dbrosetta-translation-description {
+    margin-top: 0.5rem;
+}
+
+.dbrosetta-translation-description small {
+    color: #666;
+    line-height: 1.4;
+}
+
+/* ===================================================================
+   Result Meta
+   =================================================================== */
+
+.dbrosetta-result-meta {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f0f0f0;
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.dbrosetta-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.dbrosetta-status-active {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.dbrosetta-status-inactive {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+/* ===================================================================
+   Pagination
+   =================================================================== */
+
+.dbrosetta-pagination {
+    margin-top: 1.5rem;
+    text-align: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.dbrosetta-pagination-info {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+/* ===================================================================
+   Error Messages
+   =================================================================== */
+
+.dbrosetta-error {
+    background: #f8d7da;
+    border: 1px solid #f5c2c7;
+    border-radius: 4px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+}
+
+.dbrosetta-error p {
+    margin: 0;
+    color: #842029;
+}
+
+/* ===================================================================
+   Responsive Design
+   =================================================================== */
+
+@media (max-width: 768px) {
+    .dbrosetta-search-form {
+        padding: 1.5rem;
+    }
+
+    .dbrosetta-form-actions {
+        flex-direction: column;
+    }
+
+    .dbrosetta-button {
+        width: 100%;
+        text-align: center;
+    }
+
+    .dbrosetta-result-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .dbrosetta-translations-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dbrosetta-result-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
