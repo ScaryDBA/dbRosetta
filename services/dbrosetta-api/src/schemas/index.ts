@@ -24,7 +24,10 @@ export const dialectUpdateSchema = dialectSchema.partial();
 
 export const dialectFilterSchema = z.object({
   name: z.string().optional(),
-  isActive: z.string().transform((val) => val === 'true').optional(),
+  isActive: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
 });
 
 // Term schemas
@@ -43,7 +46,10 @@ export const termUpdateSchema = termSchema.partial();
 export const termFilterSchema = z.object({
   category: z.string().optional(),
   subcategory: z.string().optional(),
-  isActive: z.string().transform((val) => val === 'true').optional(),
+  isActive: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
   search: z.string().optional(),
 });
 
@@ -65,7 +71,10 @@ export const translationUpdateSchema = translationSchema.partial();
 export const translationFilterSchema = z.object({
   termId: z.string().transform(Number).optional(),
   dialectId: z.string().transform(Number).optional(),
-  isActive: z.string().transform((val) => val === 'true').optional(),
+  isActive: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
   minConfidence: z.string().transform(Number).optional(),
 });
 

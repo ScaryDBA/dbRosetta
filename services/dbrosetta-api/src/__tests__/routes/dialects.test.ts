@@ -11,7 +11,7 @@ describe('Dialects API', () => {
   beforeAll(async () => {
     app = await buildApp();
     await app.ready();
-    
+
     // Create test users
     const users = await createTestUsers();
     adminUser = users.admin;

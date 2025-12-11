@@ -22,7 +22,7 @@ export interface WordPressJWTPayload {
  */
 export function verifyWordPressToken(token: string): WordPressJWTPayload {
   const config = getConfig();
-  
+
   if (!config.WORDPRESS_JWT_SECRET) {
     throw new Error('WORDPRESS_JWT_SECRET is not configured');
   }
@@ -56,7 +56,7 @@ export function verifyWordPressToken(token: string): WordPressJWTPayload {
  */
 export function extractEmailFromWordPressPayload(payload: WordPressJWTPayload): string {
   const email = payload.data.user.email || payload.data.user.user_email;
-  
+
   if (!email || typeof email !== 'string') {
     throw new Error('Email not found in WordPress token');
   }
@@ -74,14 +74,14 @@ export function extractEmailFromWordPressPayload(payload: WordPressJWTPayload): 
  */
 export function extractUserIdFromWordPressPayload(payload: WordPressJWTPayload): number {
   const userId = payload.data.user.id;
-  
+
   if (!userId) {
     throw new Error('User ID not found in WordPress token');
   }
 
   // Convert to number if it's a string
   const numericId = typeof userId === 'string' ? parseInt(userId, 10) : userId;
-  
+
   if (isNaN(numericId) || numericId <= 0) {
     throw new Error('Invalid user ID in WordPress token');
   }

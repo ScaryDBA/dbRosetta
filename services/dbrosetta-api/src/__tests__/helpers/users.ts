@@ -66,19 +66,9 @@ export async function createTestUsers(): Promise<{
   admin: TestUser;
   user: TestUser;
 }> {
-  const admin = await createTestUser(
-    'admin@test.com',
-    'adminpass123',
-    'admin',
-    'Test Admin'
-  );
+  const admin = await createTestUser('admin@test.com', 'adminpass123', 'admin', 'Test Admin');
 
-  const user = await createTestUser(
-    'user@test.com',
-    'userpass123',
-    'user',
-    'Test User'
-  );
+  const user = await createTestUser('user@test.com', 'userpass123', 'user', 'Test User');
 
   return { admin, user };
 }

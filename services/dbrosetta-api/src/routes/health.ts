@@ -108,14 +108,14 @@ export default async function healthRoutes(
     handler: async (_request, reply) => {
       try {
         await prisma.$queryRaw`SELECT 1`;
-        return reply.send({ 
+        return reply.send({
           status: 'ready',
-          database: { connected: true }
+          database: { connected: true },
         });
       } catch (error) {
-        return reply.status(503).send({ 
+        return reply.status(503).send({
           status: 'not ready',
-          database: { connected: false }
+          database: { connected: false },
         });
       }
     },

@@ -89,7 +89,7 @@ export default async function translationsRoutes(
         }),
       ]);
 
-      const response: PaginatedResponse<typeof data[0]> = {
+      const response: PaginatedResponse<(typeof data)[0]> = {
         data,
         pagination: {
           page: pagination.page,

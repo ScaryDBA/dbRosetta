@@ -14,14 +14,10 @@ export interface JWTPayload {
  */
 export function generateToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): string {
   const config = getConfig();
-  return jwt.sign(
-    payload,
-    config.JWT_SECRET,
-    {
-      expiresIn: config.JWT_EXPIRES_IN,
-      issuer: 'dbrosetta-api',
-    } as jwt.SignOptions
-  );
+  return jwt.sign(payload, config.JWT_SECRET, {
+    expiresIn: config.JWT_EXPIRES_IN,
+    issuer: 'dbrosetta-api',
+  } as jwt.SignOptions);
 }
 
 /**

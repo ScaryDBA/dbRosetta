@@ -115,9 +115,7 @@ export default async function metricsRoutes(
         metrics.push('# TYPE dbrosetta_artifacts_by_type gauge');
 
         artifactsByType.forEach((row) => {
-          metrics.push(
-            `dbrosetta_artifacts_by_type{type="${row.artifact_type}"} ${row.count}`
-          );
+          metrics.push(`dbrosetta_artifacts_by_type{type="${row.artifact_type}"} ${row.count}`);
         });
 
         metrics.push('');

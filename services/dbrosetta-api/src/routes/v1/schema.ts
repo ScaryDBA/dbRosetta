@@ -160,10 +160,7 @@ export default async function schemaRoutes(
             ]);
             break;
           case 'terms':
-            [sample, count] = await Promise.all([
-              prisma.term.findFirst(),
-              prisma.term.count(),
-            ]);
+            [sample, count] = await Promise.all([prisma.term.findFirst(), prisma.term.count()]);
             break;
           case 'translations':
             [sample, count] = await Promise.all([
