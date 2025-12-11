@@ -19,6 +19,7 @@
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
+    "prisma:seed": "tsx prisma/seed.ts",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "postman:test": "newman run postman/dbRosetta-API.postman_collection.json --environment postman/dbRosetta-Local.postman_environment.json --reporters cli,json",
