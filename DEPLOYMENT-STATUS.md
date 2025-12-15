@@ -31,7 +31,7 @@ Add these lines to your WordPress `wp-config.php` file (before "That's all, stop
 ```php
 // dbRosetta API Configuration
 define('DBROSETTA_API_URL', 'https://dbrosetta-api-staging.azurewebsites.net/api/v1');
-define('DBROSETTA_API_TOKEN', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoid29yZHByZXNzLXBsdWdpbkBkYnJvc2V0dGEudGVzdCIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzY1NDcxNjE4LCJleHAiOjE3NjU0NzUyMTgsImlzcyI6ImRicm9zZXR0YS1hcGkifQ._h8hWVNq8j588_4DpzwtaSRW2tuNuzhhlCOO07aFkLg');
+define('DBROSETTA_API_TOKEN', '[your-jwt-access-token-here]');
 ```
 
 ### Step 2: Install the Plugin
@@ -63,7 +63,7 @@ The API is working but **the database has no data yet**. You need to:
 
 ```bash
 # Connect to PostgreSQL
-psql "postgresql://postgres:dbRosetta2025SecurePass@rosettacluster.postgres.database.azure.com:5432/dbrosetta?sslmode=require"
+psql "postgresql://postgres:[YOUR_PASSWORD]@rosettacluster.postgres.database.azure.com:5432/dbrosetta?sslmode=require"
 
 # Run the schema initialization
 \i schema/init-dbrosetta-schema.sql
@@ -85,7 +85,7 @@ npx prisma migrate deploy
 - **Port**: `5432`
 - **Database**: `dbrosetta`
 - **Username**: `postgres`
-- **Password**: `dbRosetta2025SecurePass`
+- **Password**: `[Stored in Azure App Service environment variables]`
 - **SSL Mode**: `require`
 
 ### App Service Settings
