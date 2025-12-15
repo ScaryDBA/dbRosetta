@@ -118,7 +118,7 @@ curl https://dbrosetta-api-staging.azurewebsites.net/health
 ```bash
 curl -X POST https://dbrosetta-api-staging.azurewebsites.net/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"wordpress-plugin@dbrosetta.test","password":"WordPress2025!Secure"}'
+  -d '{"email":"your-test-user@example.com","password":"YOUR_PASSWORD"}'
 ```
 
 ### Query Terms (with token)
