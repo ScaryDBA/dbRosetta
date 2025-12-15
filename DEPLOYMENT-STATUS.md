@@ -12,12 +12,12 @@ The dbRosetta API is now running on Azure App Service:
 ## 🔑 JWT Token for WordPress Plugin
 
 ### Test User Credentials
-- **Email**: `wordpress-plugin@dbrosetta.test`
-- **Password**: `WordPress2025!Secure`
+- **Email**: `your-test-user@example.com`
+- **Password**: `[Create a test user via API]`
 
 ### JWT Access Token
 ```
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoid29yZHByZXNzLXBsdWdpbkBkYnJvc2V0dGEudGVzdCIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzY1NDcxNjE4LCJleHAiOjE3NjU0NzUyMTgsImlzcyI6ImRicm9zZXR0YS1hcGkifQ._h8hWVNq8j588_4DpzwtaSRW2tuNuzhhlCOO07aFkLg
+[Obtain token by calling POST /api/v1/auth/login with your test user credentials]
 ```
 
 ---
