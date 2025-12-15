@@ -69,10 +69,51 @@ $total = isset($results['total']) ? $results['total'] : count($items);
                     <?php endif; ?>
 
                     <?php
-                    // Try to fetch translations for this term
-                    if (isset($item['term_id'])) {
+                    // Fetch full term details including equivalents
+                    if (isset($item['id']) || isset($item['term_id'])) {
+                        $term_id = isset($item['id']) ? $item['id'] : $item['term_id'];
                         $client = new DBRosetta_Client(DBROSETTA_API_URL, DBROSETTA_API_TOKEN);
-                        $translations_response = $client->get_translations($item['term_id']);
+                        $term_details = $client->get_term_with_equivalents($term_id);
+                        
+                        // Display platform equivalents if available
+                        if (!is_wp_error($term_details) && isset($term_details['equivalents']) && !empty($term_details['equivalents'])):
+                    ?>
+                        <div class="dbrosetta-equivalents">
+                            <h6 class="dbrosetta-equivalents-title">
+                                <?php esc_html_e('Platform Equivalents:', 'dbrosetta'); ?>
+                            </h6>
+                            <div class="dbrosetta-equivalents-table">
+                                <table class="dbrosetta-table">
+                                    <thead>
+                                        <tr>
+                                            <th><?php esc_html_e('Platform', 'dbrosetta'); ?></th>
+                                            <th><?php esc_html_e('Equivalent Term', 'dbrosetta'); ?></th>
+                                            <th><?php esc_html_e('Notes', 'dbrosetta'); ?></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($term_details['equivalents'] as $equiv): ?>
+                                            <tr>
+                                                <td><strong><?php echo esc_html($equiv['platform']); ?></strong></td>
+                                                <td><code><?php echo esc_html($equiv['equivalentTerm']); ?></code></td>
+                                                <td><?php echo esc_html($equiv['notes'] ?? ''); ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    <?php
+                        endif;
+                    }
+                    ?>
+
+                    <?php
+                    // Try to fetch translations for this term
+                    if (isset($item['id']) || isset($item['term_id'])) {
+                        $term_id = isset($item['id']) ? $item['id'] : $item['term_id'];
+                        $client = new DBRosetta_Client(DBROSETTA_API_URL, DBROSETTA_API_TOKEN);
+                        $translations_response = $client->get_translations($term_id);
                         
                         if (!is_wp_error($translations_response) && !empty($translations_response['data'])):
                             $translations = $translations_response['data'];

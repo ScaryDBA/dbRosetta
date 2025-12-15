@@ -170,7 +170,18 @@ async function main() {
     },
   });
 
-  console.log('✅ Created 10 terms');
+  const walTerm = await prisma.term.create({
+    data: {
+      canonicalTerm: 'WAL',
+      category: 'System',
+      subcategory: 'Logging',
+      description: 'Write Ahead Log (WAL) is a mechanism ensuring changes are logged before being applied to the database',
+      usageContext: 'Used for crash recovery, replication, and point-in-time recovery',
+      isActive: true,
+    },
+  });
+
+  console.log('✅ Created 11 terms');
 
   // 3. Create Translations
   console.log('Creating translations...');
@@ -429,17 +440,59 @@ async function main() {
 
   console.log('✅ Created translations for all terms across all dialects');
 
+  // 4. Create Term Equivalents
+  console.log('Creating term equivalents...');
+
+  await prisma.termEquivalent.createMany({
+    data: [
+      {
+        termId: walTerm.id,
+        platform: 'PostgreSQL',
+        equivalentTerm: 'WAL',
+        notes: 'Native implementation',
+      },
+      {
+        termId: walTerm.id,
+        platform: 'SQL Server',
+        equivalentTerm: 'Transaction Log',
+        notes: 'Similar concept, different name',
+      },
+      {
+        termId: walTerm.id,
+        platform: 'Oracle',
+        equivalentTerm: 'Redo Log',
+        notes: 'Equivalent mechanism',
+      },
+      {
+        termId: walTerm.id,
+        platform: 'MySQL',
+        equivalentTerm: 'Binary Log',
+        notes: 'Used for replication and recovery',
+      },
+      {
+        termId: walTerm.id,
+        platform: 'SQLite',
+        equivalentTerm: 'WAL',
+        notes: 'Same terminology',
+      },
+    ],
+  });
+
+  console.log('✅ Created term equivalents');
+
   // Summary
   const counts = {
     dialects: await prisma.dialect.count(),
     terms: await prisma.term.count(),
     translations: await prisma.translation.count(),
+    termEquivalents: await prisma.termEquivalent.count(),
   };
 
   console.log('\n📊 Seed Summary:');
   console.log(`   Dialects: ${counts.dialects}`);
   console.log(`   Terms: ${counts.terms}`);
   console.log(`   Translations: ${counts.translations}`);
+  console.log(`   Term Equivalents: ${counts.termEquivalents}`);
   console.log('\n✅ Database seeded successfully!');
 }
 

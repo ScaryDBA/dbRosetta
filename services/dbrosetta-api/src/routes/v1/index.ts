@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import authRoutes from './auth';
 import dialectsRoutes from './dialects';
 import termsRoutes from './terms';
+import termEquivalentsRoutes from './term-equivalents';
 import translationsRoutes from './translations';
 import artifactsRoutes from './artifacts';
 import queryRoutes from './query';
@@ -16,6 +17,7 @@ export default async function v1Routes(
   await app.register(authRoutes, { prefix: '/auth' });
   await app.register(dialectsRoutes, { prefix: '/dialects' });
   await app.register(termsRoutes, { prefix: '/terms' });
+  await app.register(termEquivalentsRoutes, { prefix: '/terms' });
   await app.register(translationsRoutes, { prefix: '/translations' });
   await app.register(artifactsRoutes, { prefix: '/artifacts' });
   await app.register(queryRoutes, { prefix: '/query' });

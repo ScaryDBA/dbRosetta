@@ -140,6 +140,23 @@ class DBRosetta_Client {
     }
 
     /**
+     * Get a term with its equivalents.
+     *
+     * @param int $term_id The term ID.
+     * @return array|WP_Error Term data with equivalents or WP_Error on failure.
+     */
+    public function get_term_with_equivalents($term_id) {
+        // Validate input
+        $term_id = absint($term_id);
+        if ($term_id <= 0) {
+            return new WP_Error('invalid_input', __('Invalid term ID.', 'dbrosetta'));
+        }
+
+        // Make the API request to get term details including equivalents
+        return $this->make_request('GET', '/terms/' . $term_id);
+    }
+
+    /**
      * Make a request to the API.
      *
      * @param string $method HTTP method (GET, POST, etc.).

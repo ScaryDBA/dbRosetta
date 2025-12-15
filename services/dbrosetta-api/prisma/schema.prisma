@@ -48,6 +48,7 @@ model Term {
 
   // Relations
   translations           Translation[]
+  equivalents            TermEquivalent[]
 
   @@index([canonicalTerm], name: "idx_terms_canonical")
   @@index([category], name: "idx_terms_category")
@@ -83,6 +84,25 @@ model Translation {
   @@index([confidenceLevel], name: "idx_translations_confidence")
   @@index([metadata], type: Gin, name: "idx_translations_metadata")
   @@map("translations")
+  @@schema("dbrosetta")
+}
+
+model TermEquivalent {
+  id                     Int            @id @default(autoincrement())
+  termId                 Int            @map("term_id")
+  platform               String         @db.VarChar(100)
+  equivalentTerm         String         @map("equivalent_term") @db.VarChar(200)
+  notes                  String?
+  createdAt              DateTime       @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt              DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  term                   Term           @relation(fields: [termId], references: [id], onDelete: Cascade)
+
+  @@unique([termId, platform], name: "uq_term_equivalents_term_platform")
+  @@index([termId], name: "idx_term_equivalents_term")
+  @@index([platform], name: "idx_term_equivalents_platform")
+  @@map("term_equivalents")
   @@schema("dbrosetta")
 }
 

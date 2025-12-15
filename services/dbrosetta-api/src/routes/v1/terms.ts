@@ -124,6 +124,11 @@ export default async function termsRoutes(
               },
             },
           },
+          equivalents: {
+            orderBy: {
+              platform: 'asc',
+            },
+          },
         },
       });
 
