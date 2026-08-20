@@ -59,133 +59,13 @@ async function main() {
 
   // 2. Create Terms
   console.log('Creating terms...');
-  
-  const selectTerm = await prisma.term.create({
-    data: {
-      canonicalTerm: 'SELECT',
-      category: 'DQL',
-      subcategory: 'Query',
-      description: 'Retrieves rows from a database table',
-      usageContext: 'Used to query and retrieve data from one or more tables',
-      isActive: true,
-    },
-  });
-
-  const insertTerm = await prisma.term.create({
-    data: {
-      canonicalTerm: 'INSERT',
-      category: 'DML',
-      subcategory: 'Modification',
-      description: 'Inserts new rows into a table',
-      usageContext: 'Used to add new records to a table',
-      isActive: true,
-    },
-  });
-
-  const updateTerm = await prisma.term.create({
-    data: {
-      canonicalTerm: 'UPDATE',
-      category: 'DML',
-      subcategory: 'Modification',
-      description: 'Modifies existing rows in a table',
-      usageContext: 'Used to change existing data in a table',
-      isActive: true,
-    },
-  });
-
-  const deleteTerm = await prisma.term.create({
-    data: {
-      canonicalTerm: 'DELETE',
-      category: 'DML',
-      subcategory: 'Modification',
-      description: 'Removes rows from a table',
-      usageContext: 'Used to remove existing records from a table',
-      isActive: true,
-    },
-  });
-
-  const createTableTerm = await prisma.term.create({
-    data: {
-      canonicalTerm: 'CREATE TABLE',
-      category: 'DDL',
-      subcategory: 'Schema',
-      description: 'Creates a new table in the database',
-      usageContext: 'Used to define the structure of a new table',
-      isActive: true,
-    },
-  });
-
-  const alterTableTerm = await prisma.term.create({
-    data: {
-      canonicalTerm: 'ALTER TABLE',
-      category: 'DDL',
-      subcategory: 'Schema',
-      description: 'Modifies an existing table structure',
-      usageContext: 'Used to add, modify, or drop columns and constraints',
-      isActive: true,
-    },
-  });
-
-  const dropTableTerm = await prisma.term.create({
-    data: {
-      canonicalTerm: 'DROP TABLE',
-      category: 'DDL',
-      subcategory: 'Schema',
-      description: 'Removes a table from the database',
-      usageContext: 'Used to permanently delete a table and its data',
-      isActive: true,
-    },
-  });
-
-  const joinTerm = await prisma.term.create({
-    data: {
-      canonicalTerm: 'JOIN',
-      category: 'DQL',
-      subcategory: 'Query',
-      description: 'Combines rows from two or more tables',
-      usageContext: 'Used to retrieve related data from multiple tables',
-      isActive: true,
-    },
-  });
-
-  const whereTerm = await prisma.term.create({
-    data: {
-      canonicalTerm: 'WHERE',
-      category: 'DQL',
-      subcategory: 'Filter',
-      description: 'Filters rows based on a condition',
-      usageContext: 'Used to specify conditions for selecting or modifying data',
-      isActive: true,
-    },
-  });
-
-  const groupByTerm = await prisma.term.create({
-    data: {
-      canonicalTerm: 'GROUP BY',
-      category: 'DQL',
-      subcategory: 'Aggregation',
-      description: 'Groups rows that have the same values',
-      usageContext: 'Used with aggregate functions to group result sets',
-      isActive: true,
-    },
-  });
-
-  const walTerm = await prisma.term.create({
-    data: {
-      canonicalTerm: 'WAL',
-      category: 'System',
-      subcategory: 'Logging',
-      description: 'Write Ahead Log (WAL) is a mechanism ensuring changes are logged before being applied to the database',
-      usageContext: 'Used for crash recovery, replication, and point-in-time recovery',
-      isActive: true,
-    },
-  });
 
   async function upsertTermByCanonicalName(termData: {
     canonicalTerm: string;
     category: string;
     subcategory: string;
     description: string;
+    usageContext?: string;
   }) {
     const existing = await prisma.term.findFirst({
       where: { canonicalTerm: termData.canonicalTerm },
@@ -195,6 +75,94 @@ async function main() {
     }
     return prisma.term.create({ data: { ...termData, isActive: true } });
   }
+
+  const selectTerm = await upsertTermByCanonicalName({
+    canonicalTerm: 'SELECT',
+    category: 'DQL',
+    subcategory: 'Query',
+    description: 'Retrieves rows from a database table',
+    usageContext: 'Used to query and retrieve data from one or more tables',
+  });
+
+  const insertTerm = await upsertTermByCanonicalName({
+    canonicalTerm: 'INSERT',
+    category: 'DML',
+    subcategory: 'Modification',
+    description: 'Inserts new rows into a table',
+    usageContext: 'Used to add new records to a table',
+  });
+
+  const updateTerm = await upsertTermByCanonicalName({
+    canonicalTerm: 'UPDATE',
+    category: 'DML',
+    subcategory: 'Modification',
+    description: 'Modifies existing rows in a table',
+    usageContext: 'Used to change existing data in a table',
+  });
+
+  const deleteTerm = await upsertTermByCanonicalName({
+    canonicalTerm: 'DELETE',
+    category: 'DML',
+    subcategory: 'Modification',
+    description: 'Removes rows from a table',
+    usageContext: 'Used to remove existing records from a table',
+  });
+
+  const createTableTerm = await upsertTermByCanonicalName({
+    canonicalTerm: 'CREATE TABLE',
+    category: 'DDL',
+    subcategory: 'Schema',
+    description: 'Creates a new table in the database',
+    usageContext: 'Used to define the structure of a new table',
+  });
+
+  const alterTableTerm = await upsertTermByCanonicalName({
+    canonicalTerm: 'ALTER TABLE',
+    category: 'DDL',
+    subcategory: 'Schema',
+    description: 'Modifies an existing table structure',
+    usageContext: 'Used to add, modify, or drop columns and constraints',
+  });
+
+  const dropTableTerm = await upsertTermByCanonicalName({
+    canonicalTerm: 'DROP TABLE',
+    category: 'DDL',
+    subcategory: 'Schema',
+    description: 'Removes a table from the database',
+    usageContext: 'Used to permanently delete a table and its data',
+  });
+
+  const joinTerm = await upsertTermByCanonicalName({
+    canonicalTerm: 'JOIN',
+    category: 'DQL',
+    subcategory: 'Query',
+    description: 'Combines rows from two or more tables',
+    usageContext: 'Used to retrieve related data from multiple tables',
+  });
+
+  const whereTerm = await upsertTermByCanonicalName({
+    canonicalTerm: 'WHERE',
+    category: 'DQL',
+    subcategory: 'Filter',
+    description: 'Filters rows based on a condition',
+    usageContext: 'Used to specify conditions for selecting or modifying data',
+  });
+
+  const groupByTerm = await upsertTermByCanonicalName({
+    canonicalTerm: 'GROUP BY',
+    category: 'DQL',
+    subcategory: 'Aggregation',
+    description: 'Groups rows that have the same values',
+    usageContext: 'Used with aggregate functions to group result sets',
+  });
+
+  const walTerm = await upsertTermByCanonicalName({
+    canonicalTerm: 'WAL',
+    category: 'System',
+    subcategory: 'Logging',
+    description: 'Write Ahead Log (WAL) is a mechanism ensuring changes are logged before being applied to the database',
+    usageContext: 'Used for crash recovery, replication, and point-in-time recovery',
+  });
 
   const bufferPoolTerm = await upsertTermByCanonicalName({
     canonicalTerm: 'Buffer Pool / Buffer Cache',
@@ -259,6 +227,7 @@ async function main() {
   
   // SELECT translations
   await prisma.translation.createMany({
+    skipDuplicates: true,
     data: [
       {
         termId: selectTerm.id,
@@ -301,6 +270,7 @@ async function main() {
 
   // INSERT translations
   await prisma.translation.createMany({
+    skipDuplicates: true,
     data: [
       {
         termId: insertTerm.id,
@@ -343,6 +313,7 @@ async function main() {
 
   // UPDATE translations
   await prisma.translation.createMany({
+    skipDuplicates: true,
     data: [
       {
         termId: updateTerm.id,
@@ -385,6 +356,7 @@ async function main() {
 
   // DELETE translations
   await prisma.translation.createMany({
+    skipDuplicates: true,
     data: [
       {
         termId: deleteTerm.id,
@@ -427,6 +399,7 @@ async function main() {
 
   // CREATE TABLE translations
   await prisma.translation.createMany({
+    skipDuplicates: true,
     data: [
       {
         termId: createTableTerm.id,
@@ -469,6 +442,7 @@ async function main() {
 
   // JOIN translations
   await prisma.translation.createMany({
+    skipDuplicates: true,
     data: [
       {
         termId: joinTerm.id,
@@ -515,27 +489,32 @@ async function main() {
   console.log('Creating term equivalents...');
 
   await prisma.termEquivalent.createMany({
+    skipDuplicates: true,
     data: [
       {
         termId: walTerm.id,
+        dialectId: postgresql.id,
         platform: 'PostgreSQL',
         equivalentTerm: 'WAL',
         notes: 'Native implementation',
       },
       {
         termId: walTerm.id,
+        dialectId: sqlserver.id,
         platform: 'SQL Server',
         equivalentTerm: 'Transaction Log',
         notes: 'Similar concept, different name',
       },
       {
         termId: walTerm.id,
+        dialectId: oracle.id,
         platform: 'Oracle',
         equivalentTerm: 'Redo Log',
         notes: 'Equivalent mechanism',
       },
       {
         termId: walTerm.id,
+        dialectId: mysql.id,
         platform: 'MySQL',
         equivalentTerm: 'Binary Log',
         notes: 'Used for replication and recovery',
