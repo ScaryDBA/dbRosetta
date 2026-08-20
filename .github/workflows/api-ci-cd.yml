@@ -288,7 +288,7 @@ jobs:
   migrate-production:
     name: Run Migrations (Production)
     runs-on: [self-hosted, linux, x64]
-    needs: smoke-test-staging
+    needs: docker-build
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
       name: production
