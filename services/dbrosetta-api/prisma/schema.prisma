@@ -26,6 +26,7 @@ model Dialect {
   translations           Translation[]
   sourceArtifacts        Artifact[]     @relation("SourceDialect")
   targetArtifacts        Artifact[]     @relation("TargetDialect")
+  termEquivalents        TermEquivalent[]
 
   @@index([name], name: "idx_dialects_name")
   @@index([isActive], name: "idx_dialects_active")
@@ -93,15 +94,19 @@ model TermEquivalent {
   platform               String         @db.VarChar(100)
   equivalentTerm         String         @map("equivalent_term") @db.VarChar(200)
   notes                  String?
+  dialectId              Int?           @map("dialect_id")
   createdAt              DateTime       @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt              DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
 
   // Relations
   term                   Term           @relation(fields: [termId], references: [id], onDelete: Cascade)
+  dialect                Dialect?       @relation(fields: [dialectId], references: [id])
 
   @@unique([termId, platform], name: "uq_term_equivalents_term_platform")
+  @@unique([termId, dialectId], name: "uq_term_equivalents_term_dialect")
   @@index([termId], name: "idx_term_equivalents_term")
   @@index([platform], name: "idx_term_equivalents_platform")
+  @@index([dialectId], name: "idx_term_equivalents_dialect")
   @@map("term_equivalents")
   @@schema("dbrosetta")
 }

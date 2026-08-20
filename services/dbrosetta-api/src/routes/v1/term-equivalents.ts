@@ -97,7 +97,7 @@ export default async function termEquivalentsRoutes(
       // Check for duplicate platform
       const existing = await prisma.termEquivalent.findUnique({
         where: {
-          termId_platform: {
+          uq_term_equivalents_term_platform: {
             termId,
             platform: data.platform,
           },
@@ -169,7 +169,7 @@ export default async function termEquivalentsRoutes(
         if (data.platform && data.platform !== existing.platform) {
           const duplicate = await prisma.termEquivalent.findUnique({
             where: {
-              termId_platform: {
+              uq_term_equivalents_term_platform: {
                 termId,
                 platform: data.platform,
               },

@@ -1,0 +1,5 @@
+{
+  "term": "transaction log",
+  "sourceDialect": "sqlserver",
+  "targetDialects": ["postgresql"]
+}

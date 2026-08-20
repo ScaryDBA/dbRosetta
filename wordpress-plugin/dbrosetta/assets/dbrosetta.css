@@ -97,6 +97,57 @@
 }
 
 /* ===================================================================
+   Target Dialect Checkboxes
+   =================================================================== */
+
+.dbrosetta-target-dialects {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    padding: 0.75rem 0;
+}
+
+.dbrosetta-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: normal;
+    color: #333;
+    cursor: pointer;
+}
+
+.dbrosetta-checkbox-all {
+    font-weight: 600;
+    padding-right: 1rem;
+    border-right: 1px solid #e0e0e0;
+}
+
+/* ===================================================================
+   Source Platform Match
+   =================================================================== */
+
+.dbrosetta-source-match {
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    background: #f8f9fa;
+    border-left: 3px solid #0073aa;
+    border-radius: 0 4px 4px 0;
+}
+
+.dbrosetta-source-match p {
+    margin: 0;
+    color: #333;
+}
+
+.dbrosetta-source-match code {
+    background: #e9ecef;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-family: 'Courier New', Courier, monospace;
+    color: #d63384;
+}
+
+/* ===================================================================
    Buttons
    =================================================================== */
 

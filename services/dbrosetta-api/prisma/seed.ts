@@ -181,7 +181,78 @@ async function main() {
     },
   });
 
-  console.log('✅ Created 11 terms');
+  async function upsertTermByCanonicalName(termData: {
+    canonicalTerm: string;
+    category: string;
+    subcategory: string;
+    description: string;
+  }) {
+    const existing = await prisma.term.findFirst({
+      where: { canonicalTerm: termData.canonicalTerm },
+    });
+    if (existing) {
+      return existing;
+    }
+    return prisma.term.create({ data: { ...termData, isActive: true } });
+  }
+
+  const bufferPoolTerm = await upsertTermByCanonicalName({
+    canonicalTerm: 'Buffer Pool / Buffer Cache',
+    category: 'System',
+    subcategory: 'Memory',
+    description: 'The in-memory cache of recently used data pages that reduces physical disk I/O.',
+  });
+
+  const mvccTerm = await upsertTermByCanonicalName({
+    canonicalTerm: 'Row Versioning / MVCC Mechanism',
+    category: 'System',
+    subcategory: 'Concurrency',
+    description: 'The mechanism that lets readers see a consistent snapshot of data without blocking writers, by keeping prior versions of changed rows.',
+  });
+
+  const clusteredStorageTerm = await upsertTermByCanonicalName({
+    canonicalTerm: 'Clustered Table Storage',
+    category: 'System',
+    subcategory: 'Storage',
+    description: "Whether and how a table's data rows are physically ordered on disk according to a key.",
+  });
+
+  const identityTerm = await upsertTermByCanonicalName({
+    canonicalTerm: 'Identity / Auto-Increment Column',
+    category: 'DDL',
+    subcategory: 'Schema',
+    description: 'A column that automatically generates a unique, incrementing value for new rows.',
+  });
+
+  const tempWorkspaceTerm = await upsertTermByCanonicalName({
+    canonicalTerm: 'Temporary Workspace for Sorts/Spills',
+    category: 'System',
+    subcategory: 'Storage',
+    description: 'The storage area the database engine uses for sort operations, hash joins, and other data that spills to disk.',
+  });
+
+  const deadlockArtifactTerm = await upsertTermByCanonicalName({
+    canonicalTerm: 'Deadlock Diagnostic Artifact',
+    category: 'System',
+    subcategory: 'Concurrency',
+    description: 'The information the engine records when it detects and breaks a deadlock, used to diagnose the conflicting transactions.',
+  });
+
+  const executionPlanTerm = await upsertTermByCanonicalName({
+    canonicalTerm: 'Query Execution Plan',
+    category: 'DQL',
+    subcategory: 'Query',
+    description: 'The plan the optimizer chooses to physically execute a query, showing operators, order, and estimated/actual cost.',
+  });
+
+  const optimizerStatsTerm = await upsertTermByCanonicalName({
+    canonicalTerm: 'Optimizer Statistics',
+    category: 'System',
+    subcategory: 'Query Optimization',
+    description: 'The metadata about data distribution and cardinality that the query optimizer uses to choose a plan.',
+  });
+
+  console.log('✅ Created 11 terms + 8 directional-lookup terms');
 
   // 3. Create Translations
   console.log('Creating translations...');
@@ -479,6 +550,64 @@ async function main() {
   });
 
   console.log('✅ Created term equivalents');
+
+  // 5. Create Term Equivalents for the 8 directional-lookup concept terms
+  console.log('Creating directional-lookup term equivalents...');
+
+  await prisma.termEquivalent.createMany({
+    skipDuplicates: true,
+    data: [
+      // Buffer Pool / Buffer Cache
+      { termId: bufferPoolTerm.id, dialectId: sqlserver.id, platform: 'SQL Server', equivalentTerm: 'Buffer Pool', notes: "Managed as part of sys.dm_os_buffer_descriptors; sized via 'max server memory'." },
+      { termId: bufferPoolTerm.id, dialectId: postgresql.id, platform: 'PostgreSQL', equivalentTerm: 'Shared Buffers', notes: 'Configured via the shared_buffers setting; PostgreSQL also relies heavily on the OS page cache.' },
+      { termId: bufferPoolTerm.id, dialectId: oracle.id, platform: 'Oracle', equivalentTerm: 'Database Buffer Cache', notes: 'Part of the SGA; sized via DB_CACHE_SIZE or automatic memory management.' },
+      { termId: bufferPoolTerm.id, dialectId: mysql.id, platform: 'MySQL', equivalentTerm: 'InnoDB Buffer Pool', notes: 'Configured via innodb_buffer_pool_size; caches both data and indexes for InnoDB tables.' },
+
+      // Row Versioning / MVCC Mechanism
+      { termId: mvccTerm.id, dialectId: sqlserver.id, platform: 'SQL Server', equivalentTerm: 'Version Store', notes: 'Lives in tempdb; used by snapshot isolation and read-committed snapshot isolation (RCSI).' },
+      { termId: mvccTerm.id, dialectId: postgresql.id, platform: 'PostgreSQL', equivalentTerm: 'MVCC', notes: 'Multiversion Concurrency Control; old row versions are retained until vacuumed, and changes are protected by the WAL.' },
+      { termId: mvccTerm.id, dialectId: oracle.id, platform: 'Oracle', equivalentTerm: 'Undo Segments', notes: 'Undo tablespace stores before-images used for read consistency and rollback.' },
+      { termId: mvccTerm.id, dialectId: mysql.id, platform: 'MySQL', equivalentTerm: 'InnoDB Undo Logs', notes: "InnoDB's MVCC implementation; undo logs support both rollback and consistent non-locking reads." },
+
+      // Clustered Table Storage
+      { termId: clusteredStorageTerm.id, dialectId: sqlserver.id, platform: 'SQL Server', equivalentTerm: 'Clustered Index', notes: "A table has at most one; data rows are stored in key order in the index's leaf level." },
+      { termId: clusteredStorageTerm.id, dialectId: postgresql.id, platform: 'PostgreSQL', equivalentTerm: 'Heap Table (no persistent clustering)', notes: 'Tables are unordered heaps by default; CLUSTER reorders rows once but does not maintain order on later writes.' },
+      { termId: clusteredStorageTerm.id, dialectId: oracle.id, platform: 'Oracle', equivalentTerm: 'Index-Organized Table (IOT)', notes: 'An alternative to a normal heap table where the table itself is stored as a B-tree index on its primary key.' },
+      { termId: clusteredStorageTerm.id, dialectId: mysql.id, platform: 'MySQL', equivalentTerm: 'Clustered Index (InnoDB Primary Key)', notes: 'InnoDB always clusters the table by its primary key; a table without an explicit primary key gets a hidden one.' },
+
+      // Identity / Auto-Increment Column
+      { termId: identityTerm.id, dialectId: sqlserver.id, platform: 'SQL Server', equivalentTerm: 'IDENTITY', notes: 'IDENTITY(seed, increment) property on a column.' },
+      { termId: identityTerm.id, dialectId: postgresql.id, platform: 'PostgreSQL', equivalentTerm: 'GENERATED ALWAYS AS IDENTITY / SERIAL', notes: 'SQL-standard IDENTITY columns (preferred) or the legacy SERIAL pseudo-type backed by a sequence.' },
+      { termId: identityTerm.id, dialectId: oracle.id, platform: 'Oracle', equivalentTerm: 'IDENTITY Column', notes: 'Native IDENTITY columns since 12c; earlier versions combine a SEQUENCE with a trigger.' },
+      { termId: identityTerm.id, dialectId: mysql.id, platform: 'MySQL', equivalentTerm: 'AUTO_INCREMENT', notes: 'AUTO_INCREMENT column attribute; only one per table, and it must be indexed.' },
+
+      // Temporary Workspace for Sorts/Spills
+      { termId: tempWorkspaceTerm.id, dialectId: sqlserver.id, platform: 'SQL Server', equivalentTerm: 'tempdb', notes: 'A shared system database used for temp tables, sort/hash spills, and the version store.' },
+      { termId: tempWorkspaceTerm.id, dialectId: postgresql.id, platform: 'PostgreSQL', equivalentTerm: 'temp_tablespaces / Temporary Files', notes: 'Configured via temp_tablespaces; spill files are written under the pgsql_tmp directory.' },
+      { termId: tempWorkspaceTerm.id, dialectId: oracle.id, platform: 'Oracle', equivalentTerm: 'TEMP Tablespace', notes: 'A dedicated temporary tablespace used for sorts, hash joins, and global temporary tables.' },
+      { termId: tempWorkspaceTerm.id, dialectId: mysql.id, platform: 'MySQL', equivalentTerm: 'tmpdir / Internal Temporary Tables', notes: 'Controlled by the tmpdir setting; internal temp tables may be in-memory or on-disk depending on size and engine.' },
+
+      // Deadlock Diagnostic Artifact
+      { termId: deadlockArtifactTerm.id, dialectId: sqlserver.id, platform: 'SQL Server', equivalentTerm: 'Deadlock Graph', notes: 'An XML deadlock graph captured via Extended Events (or the older trace flag 1222).' },
+      { termId: deadlockArtifactTerm.id, dialectId: postgresql.id, platform: 'PostgreSQL', equivalentTerm: 'Deadlock Detected Log Entry', notes: 'Logged to the server log when log_lock_waits/deadlock_timeout trigger detection; no XML graph, just structured log text.' },
+      { termId: deadlockArtifactTerm.id, dialectId: oracle.id, platform: 'Oracle', equivalentTerm: 'ORA-00060 Deadlock Trace File', notes: 'Oracle raises ORA-00060 and writes a trace file to the diagnostic destination describing the waiters.' },
+      { termId: deadlockArtifactTerm.id, dialectId: mysql.id, platform: 'MySQL', equivalentTerm: 'LATEST DETECTED DEADLOCK', notes: 'Found in the output of SHOW ENGINE INNODB STATUS, describing the transactions and locks involved.' },
+
+      // Query Execution Plan
+      { termId: executionPlanTerm.id, dialectId: sqlserver.id, platform: 'SQL Server', equivalentTerm: 'Execution Plan', notes: 'Viewable as estimated or actual plans, graphically or as XML, via SSMS or SET SHOWPLAN options.' },
+      { termId: executionPlanTerm.id, dialectId: postgresql.id, platform: 'PostgreSQL', equivalentTerm: 'Query Plan (EXPLAIN)', notes: 'Produced by EXPLAIN [ANALYZE]; text-based tree of plan nodes with costs and, with ANALYZE, actual timings.' },
+      { termId: executionPlanTerm.id, dialectId: oracle.id, platform: 'Oracle', equivalentTerm: 'Explain Plan', notes: 'Produced by EXPLAIN PLAN FOR or the SQL*Plus AUTOTRACE/DBMS_XPLAN utilities.' },
+      { termId: executionPlanTerm.id, dialectId: mysql.id, platform: 'MySQL', equivalentTerm: 'EXPLAIN Output', notes: 'Produced by EXPLAIN [ANALYZE] or the optimizer trace; tabular by default, tree-style with EXPLAIN FORMAT=TREE.' },
+
+      // Optimizer Statistics
+      { termId: optimizerStatsTerm.id, dialectId: sqlserver.id, platform: 'SQL Server', equivalentTerm: 'Statistics', notes: 'Objects visible in sys.stats; maintained automatically via AUTO_CREATE_STATISTICS/AUTO_UPDATE_STATISTICS.' },
+      { termId: optimizerStatsTerm.id, dialectId: postgresql.id, platform: 'PostgreSQL', equivalentTerm: 'Planner Statistics', notes: 'Collected by ANALYZE (often via autovacuum) and stored in pg_statistic; consumed by the planner via pg_stats.' },
+      { termId: optimizerStatsTerm.id, dialectId: oracle.id, platform: 'Oracle', equivalentTerm: 'Optimizer Statistics', notes: 'Gathered and managed via the DBMS_STATS package, typically on an automated maintenance job.' },
+      { termId: optimizerStatsTerm.id, dialectId: mysql.id, platform: 'MySQL', equivalentTerm: 'Index/Table Statistics', notes: 'InnoDB persistent optimizer statistics (innodb_stats_persistent) refreshed by ANALYZE TABLE or background sampling.' },
+    ],
+  });
+
+  console.log('✅ Created directional-lookup term equivalents');
 
   // Summary
   const counts = {
