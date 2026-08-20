@@ -1,0 +1,4 @@
+{
+  "error": "not_found",
+  "message": "No term matching \"nonexistent_term_xyz\" was found for PostgreSQL."
+}

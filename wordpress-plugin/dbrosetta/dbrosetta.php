@@ -58,7 +58,7 @@ add_action('wp_enqueue_scripts', 'dbrosetta_enqueue_styles');
 function dbrosetta_search_shortcode($atts) {
     // Parse shortcode attributes
     $atts = shortcode_atts(array(
-        'database' => '', // Optional default database
+        'source_dialect' => '', // Optional default source dialect
     ), $atts, 'dbrosetta_search');
 
     // Start output buffering
@@ -72,36 +72,57 @@ function dbrosetta_search_shortcode($atts) {
         return ob_get_clean();
     }
 
+    $client = new DBRosetta_Client(DBROSETTA_API_URL, DBROSETTA_API_TOKEN);
+
+    // Fetch active dialects to drive the source/target platform controls
+    $dialects_response = $client->get_dialects();
+    $dialects = (!is_wp_error($dialects_response) && !empty($dialects_response['data']))
+        ? $dialects_response['data']
+        : array();
+
     // Initialize variables
-    $search_term = '';
-    $selected_database = sanitize_text_field($atts['database']);
+    $term = '';
+    $source_dialect = sanitize_text_field($atts['source_dialect']);
+    $target_dialects = array();
+    $all_platforms = false;
     $results = null;
+    $not_found = false;
     $error = null;
 
     // Handle form submission
-    if (isset($_POST['dbrosetta_search_submit']) && 
+    if (isset($_POST['dbrosetta_search_submit']) &&
         isset($_POST['dbrosetta_search_nonce']) &&
         wp_verify_nonce($_POST['dbrosetta_search_nonce'], 'dbrosetta_search_action')) {
-        
+
         // Sanitize inputs
-        $search_term = isset($_POST['search_term']) ? sanitize_text_field($_POST['search_term']) : '';
-        $selected_database = isset($_POST['database']) ? sanitize_text_field($_POST['database']) : '';
+        $term = isset($_POST['term']) ? sanitize_text_field($_POST['term']) : '';
+        $source_dialect = isset($_POST['source_dialect']) ? sanitize_text_field($_POST['source_dialect']) : '';
+        $all_platforms = !empty($_POST['all_platforms']);
+        $target_dialects = isset($_POST['target_dialects']) && is_array($_POST['target_dialects'])
+            ? array_map('sanitize_text_field', $_POST['target_dialects'])
+            : array();
+
+        // "All platforms" overrides any individual target selections
+        if ($all_platforms) {
+            $target_dialects = array();
+        }
 
         // Validate inputs
-        if (empty($search_term)) {
-            $error = __('Please enter a search term.', 'dbrosetta');
+        if (empty($term) || empty($source_dialect)) {
+            $error = __('Please enter a term and select the platform you know it in.', 'dbrosetta');
         } else {
-            // Initialize API client
-            $client = new DBRosetta_Client(
-                DBROSETTA_API_URL,
-                DBROSETTA_API_TOKEN
-            );
-
-            // Perform search
-            $response = $client->search_terms($search_term, $selected_database);
+            // Perform the directional lookup
+            $response = $client->lookup_term_equivalents($term, $source_dialect, $target_dialects);
 
             if (is_wp_error($response)) {
-                $error = $response->get_error_message();
+                $error_data = $response->get_error_data();
+                $status = isset($error_data['status']) ? $error_data['status'] : null;
+
+                if ($status === 404) {
+                    $not_found = true;
+                } else {
+                    $error = $response->get_error_message();
+                }
             } else {
                 $results = $response;
             }
@@ -111,8 +132,8 @@ function dbrosetta_search_shortcode($atts) {
     // Include the search form template
     include DBROSETTA_PLUGIN_DIR . 'templates/search-form.php';
 
-    // Include the results template if we have results
-    if ($results !== null) {
+    // Include the results template if we have results or a "not found" state
+    if ($results !== null || $not_found) {
         include DBROSETTA_PLUGIN_DIR . 'templates/search-results.php';
     }
 

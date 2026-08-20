@@ -97,6 +97,57 @@
 }
 
 /* ===================================================================
+   Target Dialect Checkboxes
+   =================================================================== */
+
+.dbrosetta-target-dialects {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    padding: 0.75rem 0;
+}
+
+.dbrosetta-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: normal;
+    color: #333;
+    cursor: pointer;
+}
+
+.dbrosetta-checkbox-all {
+    font-weight: 600;
+    padding-right: 1rem;
+    border-right: 1px solid #e0e0e0;
+}
+
+/* ===================================================================
+   Source Platform Match
+   =================================================================== */
+
+.dbrosetta-source-match {
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    background: #f8f9fa;
+    border-left: 3px solid #0073aa;
+    border-radius: 0 4px 4px 0;
+}
+
+.dbrosetta-source-match p {
+    margin: 0;
+    color: #333;
+}
+
+.dbrosetta-source-match code {
+    background: #e9ecef;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-family: 'Courier New', Courier, monospace;
+    color: #d63384;
+}
+
+/* ===================================================================
    Buttons
    =================================================================== */
 
@@ -403,5 +454,88 @@
     .dbrosetta-result-meta {
         flex-direction: column;
         gap: 0.5rem;
+    }
+}
+
+/* ===================================================================
+   Platform Equivalents Table
+   =================================================================== */
+
+.dbrosetta-equivalents {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+.dbrosetta-equivalents-title {
+    margin: 0 0 1rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.dbrosetta-equivalents-table {
+    overflow-x: auto;
+}
+
+.dbrosetta-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+}
+
+.dbrosetta-table thead {
+    background: #f8f9fa;
+}
+
+.dbrosetta-table th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.dbrosetta-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e9ecef;
+    vertical-align: top;
+}
+
+.dbrosetta-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.dbrosetta-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.dbrosetta-table code {
+    background: #e9ecef;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9em;
+    color: #d63384;
+}
+
+@media (max-width: 768px) {
+    .dbrosetta-table {
+        font-size: 0.875rem;
+    }
+    
+    .dbrosetta-table th,
+    .dbrosetta-table td {
+        padding: 0.5rem;
+    }
+    
+    .dbrosetta-equivalents-table {
+        /* Allow horizontal scrolling on small screens */
+        -webkit-overflow-scrolling: touch;
     }
 }

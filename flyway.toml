@@ -24,7 +24,7 @@ developmentEnvironment = "development"
 shadowEnvironment = "shadow"
 
 [environments.default]
-url = "jdbc:postgresql://dbrosetta.postgres.database.azure.com:5432/dbrosetta?sslmode=require"
+url = "jdbc:postgresql://rosettacluster.postgres.database.azure.com:5432/dbrosetta?sslmode=require"
 user = "postgres"
 password = "${FLYWAY_PASSWORD}"
 schemas = ["dbrosetta"]
@@ -39,13 +39,13 @@ detectRenames = "identical-only"
 ignoreNewlinesInTextObjects = "off"
 
 [environments.development]
-url = "jdbc:postgresql://dbrosetta.postgres.database.azure.com:5432/dbrosetta?sslmode=require"
+url = "jdbc:postgresql://rosettacluster.postgres.database.azure.com:5432/dbrosetta?sslmode=require"
 user = "postgres"
 password = "${FLYWAY_PASSWORD}"
 schemas = ["dbrosetta"]
 
 [environments.shadow]
-url = "jdbc:postgresql://dbrosetta.postgres.database.azure.com:5432/dbrosetta_shadow?sslmode=require"
+url = "jdbc:postgresql://rosettacluster.postgres.database.azure.com:5432/dbrosetta_shadow?sslmode=require"
 user = "postgres"
 password = "${FLYWAY_PASSWORD}"
 schemas = ["dbrosetta"]

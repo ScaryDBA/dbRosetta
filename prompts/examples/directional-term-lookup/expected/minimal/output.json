@@ -1,0 +1,30 @@
+{
+  "term": {
+    "canonicalTerm": "WAL",
+    "category": "System",
+    "subcategory": "Logging",
+    "description": "Write Ahead Log (WAL) is a mechanism ensuring changes are logged before being applied to the database"
+  },
+  "sourceDialect": {
+    "name": "sqlserver",
+    "displayName": "SQL Server"
+  },
+  "matchedEquivalent": {
+    "dialect": {
+      "name": "sqlserver",
+      "displayName": "SQL Server"
+    },
+    "equivalentTerm": "Transaction Log",
+    "notes": "Similar concept, different name"
+  },
+  "results": [
+    {
+      "dialect": {
+        "name": "postgresql",
+        "displayName": "PostgreSQL"
+      },
+      "equivalentTerm": "WAL",
+      "notes": "Native implementation"
+    }
+  ]
+}

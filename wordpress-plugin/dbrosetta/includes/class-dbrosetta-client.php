@@ -95,18 +95,41 @@ class DBRosetta_Client {
         $body = array(
             'entity' => 'dialects',
             'filters' => array(
-                array(
-                    'field' => 'is_active',
-                    'operator' => '=',
-                    'value' => true
-                )
+                'isActive' => true
             ),
-            'select' => array('dialect_id', 'name', 'description'),
+            'fields' => array('id', 'name', 'displayName'),
             'limit' => 100,
-            'page' => 1
+            'offset' => 0
         );
 
         return $this->make_request('POST', '/query', $body);
+    }
+
+    /**
+     * Look up the equivalent term(s) for a term on one or more target platforms.
+     *
+     * @param string $term The term as known on the source platform.
+     * @param string $source_dialect The `dialects.name` slug the term is known in.
+     * @param array  $target_dialects Zero or more `dialects.name` slugs to translate into.
+     *                                Empty means "all platforms except the source".
+     * @return array|WP_Error Response data or WP_Error on failure.
+     */
+    public function lookup_term_equivalents($term, $source_dialect, $target_dialects = array()) {
+        if (empty($term)) {
+            return new WP_Error('invalid_input', __('Term cannot be empty.', 'dbrosetta'));
+        }
+
+        if (empty($source_dialect)) {
+            return new WP_Error('invalid_input', __('Source dialect is required.', 'dbrosetta'));
+        }
+
+        $body = array(
+            'term' => sanitize_text_field($term),
+            'sourceDialect' => sanitize_text_field($source_dialect),
+            'targetDialects' => array_values(array_map('sanitize_text_field', (array) $target_dialects)),
+        );
+
+        return $this->make_request('POST', '/terms/lookup', $body);
     }
 
     /**
@@ -137,6 +160,23 @@ class DBRosetta_Client {
         );
 
         return $this->make_request('POST', '/query', $body);
+    }
+
+    /**
+     * Get a term with its equivalents.
+     *
+     * @param int $term_id The term ID.
+     * @return array|WP_Error Term data with equivalents or WP_Error on failure.
+     */
+    public function get_term_with_equivalents($term_id) {
+        // Validate input
+        $term_id = absint($term_id);
+        if ($term_id <= 0) {
+            return new WP_Error('invalid_input', __('Invalid term ID.', 'dbrosetta'));
+        }
+
+        // Make the API request to get term details including equivalents
+        return $this->make_request('GET', '/terms/' . $term_id);
     }
 
     /**
@@ -200,15 +240,17 @@ class DBRosetta_Client {
 
         // Handle non-200 responses
         if ($response_code !== 200) {
-            $error_message = isset($data['message']) 
-                ? $data['message'] 
+            $error_message = isset($data['message'])
+                ? $data['message']
                 : sprintf(
                     /* translators: %d: HTTP status code */
                     __('API returned error code: %d', 'dbrosetta'),
                     $response_code
                 );
 
-            return new WP_Error('api_error', $error_message);
+            $error_code = isset($data['error']) ? $data['error'] : 'api_error';
+
+            return new WP_Error($error_code, $error_message, array('status' => $response_code));
         }
 
         // Check for JSON decode errors
