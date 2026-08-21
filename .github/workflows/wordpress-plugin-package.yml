@@ -1,0 +1,67 @@
+name: dbRosetta WordPress Plugin Package
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'wordpress-plugin/dbrosetta/**'
+      - '.github/workflows/wordpress-plugin-package.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'wordpress-plugin/dbrosetta/**'
+  workflow_dispatch:
+
+env:
+  PLUGIN_DIR: 'wordpress-plugin/dbrosetta'
+  PLUGIN_SLUG: 'dbrosetta'
+
+jobs:
+  # ===================================================================
+  # LINT & PACKAGE
+  # ===================================================================
+  package:
+    name: Lint and Package Plugin
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+
+      - name: Lint PHP syntax
+        run: |
+          echo "Checking PHP syntax for all plugin files..."
+          find "${{ env.PLUGIN_DIR }}" -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Read plugin version
+        id: version
+        run: |
+          VERSION=$(grep -m1 "Version:" "${{ env.PLUGIN_DIR }}/dbrosetta.php" | sed -E 's/.*Version:\s*//' | tr -d '\r')
+          echo "Plugin version: $VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build plugin zip
+        run: |
+          # Zip must contain the dbrosetta/ folder at its root so WordPress's
+          # "Upload Plugin" installer unpacks it to wp-content/plugins/dbrosetta/.
+          cd wordpress-plugin
+          zip -r "${{ env.PLUGIN_SLUG }}.zip" "${{ env.PLUGIN_SLUG }}" \
+            -x "${{ env.PLUGIN_SLUG }}/.DS_Store" \
+            -x "${{ env.PLUGIN_SLUG }}/**/.DS_Store"
+          unzip -l "${{ env.PLUGIN_SLUG }}.zip"
+
+      - name: Upload zip as build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dbrosetta-plugin-${{ steps.version.outputs.version }}-${{ github.sha }}
+          path: wordpress-plugin/${{ env.PLUGIN_SLUG }}.zip
+          retention-days: 30
+      # Grab the zip from this run's "Artifacts" section on GitHub, then use
+      # WordPress's Plugins -> Add New -> Upload Plugin to install it.
+      # (No auto-commit back to the repo here on purpose -- keeps CI from
+      # pushing to main while local work is in progress.)

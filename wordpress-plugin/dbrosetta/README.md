@@ -20,7 +20,15 @@ A secure WordPress plugin that allows users to search and view database terms an
 
 ## Installation
 
-### 1. Download the Plugin
+### 1. Get the Plugin onto WordPress
+
+**Easiest — upload the zip in wp-admin:**
+
+1. Grab a `dbrosetta.zip` (containing this `dbrosetta` folder at its root) from the **Artifacts** of the latest successful `dbRosetta WordPress Plugin Package` GitHub Actions run, or build one locally with `cd wordpress-plugin && zip -r dbrosetta.zip dbrosetta`.
+2. **Plugins → Add New Plugin → Upload Plugin**, choose the zip, **Install Now**. If a previous version exists, accept the prompt to replace it, then reactivate.
+3. Scripting it instead? `wp plugin install dbrosetta.zip --activate --force` (WP-CLI).
+
+**Alternative — manual copy (FTP/SFTP or direct file access):**
 
 Copy the entire `dbrosetta` folder to your WordPress installation's plugin directory:
 

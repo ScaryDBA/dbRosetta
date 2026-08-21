@@ -4,6 +4,26 @@
 
 ### 1. Upload Plugin
 
+**Easiest: zip upload via wp-admin (no FTP needed)**
+
+WordPress can install a plugin straight from a zip file:
+
+1. Get a `dbrosetta.zip` that has the `dbrosetta` folder at its root (containing `dbrosetta.php`, `includes/`, `templates/`, `assets/`):
+   - Download the latest one from the **Artifacts** section of the most recent successful run of the [`dbRosetta WordPress Plugin Package`](../.github/workflows/wordpress-plugin-package.yml) GitHub Actions workflow, or
+   - Build it yourself: `cd wordpress-plugin && zip -r dbrosetta.zip dbrosetta`
+2. In wp-admin, go to **Plugins → Add New Plugin → Upload Plugin**.
+3. Choose the zip file and click **Install Now**.
+4. If a previous version is already installed, WordPress will offer to replace it — accept, then reactivate.
+
+Your `wp-config.php` constants (step 2 below) live outside the plugin folder, so they survive a reinstall/upgrade.
+
+If your host disables plugin installs from wp-admin, or you're scripting the deploy, use WP-CLI instead:
+```bash
+wp plugin install dbrosetta.zip --activate --force
+```
+
+**Alternative: manual copy (FTP/SFTP or direct file access)**
+
 Copy the `dbrosetta` folder to:
 ```
 wp-content/plugins/dbrosetta/
