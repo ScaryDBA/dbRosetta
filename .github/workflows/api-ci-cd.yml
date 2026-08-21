@@ -136,78 +136,12 @@ jobs:
         run: echo "Image pushed with digest ${{ steps.meta.outputs.tags }}"
 
   # ===================================================================
-  # PRISMA MIGRATIONS (STAGING)
-  # ===================================================================
-  migrate-staging:
-    name: Run Migrations (Staging)
-    runs-on: [self-hosted, linux, x64]
-    needs: docker-build
-    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
-    environment:
-      name: staging
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: ${{ env.API_PATH }}/package-lock.json
-      
-      - name: Install dependencies
-        working-directory: ${{ env.API_PATH }}
-        run: npm ci --production=false
-      
-      - name: Login to Azure with Managed Identity
-        run: |
-          echo "Logging in with VM managed identity..."
-          az login --identity
-          az account show
-      
-      - name: Load Database Credentials from Key Vault
-        run: |
-          echo "Fetching staging database credentials from Key Vault..."
-          
-          # TODO: Update with your Key Vault name
-          KEY_VAULT_NAME="${{ secrets.AZURE_KEY_VAULT_NAME }}"
-          
-          DB_HOST=$(az keyvault secret show --vault-name "$KEY_VAULT_NAME" --name "db-staging-host" --query value -o tsv)
-          DB_NAME=$(az keyvault secret show --vault-name "$KEY_VAULT_NAME" --name "db-staging-name" --query value -o tsv)
-          DB_USER=$(az keyvault secret show --vault-name "$KEY_VAULT_NAME" --name "db-staging-user" --query value -o tsv)
-          DB_PASSWORD=$(az keyvault secret show --vault-name "$KEY_VAULT_NAME" --name "db-staging-password" --query value -o tsv)
-          
-          # Construct connection string
-          DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:5432/${DB_NAME}?schema=dbrosetta&sslmode=require"
-          
-          echo "DATABASE_URL=$DATABASE_URL" >> $GITHUB_ENV
-          echo "::add-mask::$DB_PASSWORD"
-          echo "::add-mask::$DATABASE_URL"
-          
-          echo "✓ Database credentials loaded for staging"
-      
-      - name: Run Prisma Migrations
-        working-directory: ${{ env.API_PATH }}
-        run: |
-          echo "Running Prisma migrations against staging database..."
-          npx prisma migrate deploy
-          echo "✓ Migrations applied successfully"
-      
-      - name: Verify Migration Status
-        working-directory: ${{ env.API_PATH }}
-        run: |
-          echo "Checking migration status..."
-          npx prisma migrate status
-
-  # ===================================================================
   # DEPLOY TO STAGING (Azure App Service or Container Apps)
   # ===================================================================
   deploy-staging:
     name: Deploy to Staging
     runs-on: ubuntu-latest
-    needs: [docker-build, migrate-staging]
+    needs: docker-build
     if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
     environment:
       name: staging
@@ -283,73 +217,12 @@ jobs:
           echo "✓ API smoke tests passed"
 
   # ===================================================================
-  # PRISMA MIGRATIONS (PRODUCTION) - REQUIRES APPROVAL
-  # ===================================================================
-  migrate-production:
-    name: Run Migrations (Production)
-    runs-on: [self-hosted, linux, x64]
-    needs: docker-build
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    environment:
-      name: production
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: ${{ env.API_PATH }}/package-lock.json
-      
-      - name: Install dependencies
-        working-directory: ${{ env.API_PATH }}
-        run: npm ci --production=false
-      
-      - name: Login to Azure with Managed Identity
-        run: |
-          az login --identity
-          az account show
-      
-      - name: Load Database Credentials from Key Vault
-        run: |
-          echo "Fetching production database credentials from Key Vault..."
-          
-          KEY_VAULT_NAME="${{ secrets.AZURE_KEY_VAULT_NAME }}"
-          
-          DB_HOST=$(az keyvault secret show --vault-name "$KEY_VAULT_NAME" --name "db-production-host" --query value -o tsv)
-          DB_NAME=$(az keyvault secret show --vault-name "$KEY_VAULT_NAME" --name "db-production-name" --query value -o tsv)
-          DB_USER=$(az keyvault secret show --vault-name "$KEY_VAULT_NAME" --name "db-production-user" --query value -o tsv)
-          DB_PASSWORD=$(az keyvault secret show --vault-name "$KEY_VAULT_NAME" --name "db-production-password" --query value -o tsv)
-          
-          DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:5432/${DB_NAME}?schema=dbrosetta&sslmode=require"
-          
-          echo "DATABASE_URL=$DATABASE_URL" >> $GITHUB_ENV
-          echo "::add-mask::$DB_PASSWORD"
-          echo "::add-mask::$DATABASE_URL"
-          
-          echo "✓ Database credentials loaded for production"
-      
-      - name: Run Prisma Migrations
-        working-directory: ${{ env.API_PATH }}
-        run: |
-          echo "Running Prisma migrations against PRODUCTION database..."
-          npx prisma migrate deploy
-          echo "✓ Production migrations applied successfully"
-      
-      - name: Verify Migration Status
-        working-directory: ${{ env.API_PATH }}
-        run: npx prisma migrate status
-
-  # ===================================================================
   # DEPLOY TO PRODUCTION - REQUIRES APPROVAL
   # ===================================================================
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: [docker-build, migrate-production]
+    needs: docker-build
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
       name: production
